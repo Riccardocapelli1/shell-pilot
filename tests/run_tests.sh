@@ -80,6 +80,46 @@ test_groq_normal_model() {
 
 test_groq_normal_model
 
+# 4. Integration Test: Real API call to Groq compound-mini
+# This test requires a valid GROQ_API_KEY environment variable
+test_groq_compound_mini_integration() {
+    # Unset the mock curl to use the real one
+    unset -f curl
+    
+    # Check if GROQ_API_KEY is set
+    if [[ -z "$GROQ_API_KEY" ]]; then
+        echo -e "\033[33m[SKIP]\033[0m Groq compound-mini API call (GROQ_API_KEY not set)"
+        return 0
+    fi
+    
+    USE_API="groq"
+    MODEL_GROQ="groq/compound-mini"
+    SYSTEM_PROMPT="You are a helpful assistant."
+    MAX_TOKENS=100
+    TEMPERATURE=0.7
+    
+    # Make a real API call
+    response=$(request_to_chat '{"role": "user", "content": "Say hello in one word."}')
+    
+    # Check if we got a valid response (contains 'choices' or 'content')
+    if [[ "$response" == *"choices"* ]] || [[ "$response" == *"content"* ]]; then
+        # Extract the actual message content
+        message=$(echo "$response" | jq -r '.choices[0].message.content // .content // empty' 2>/dev/null)
+        if [[ -n "$message" && "$message" != "null" ]]; then
+            echo "  Groq Response: $message"
+            assert_eq "1" "1" "Groq compound-mini API call returns valid response"
+        else
+            echo "  Raw response: $response"
+            assert_eq "1" "0" "Groq compound-mini API call returns valid response"
+        fi
+    else
+        echo "  Error response: $response"
+        assert_eq "1" "0" "Groq compound-mini API call returns valid response"
+    fi
+}
+
+test_groq_compound_mini_integration
+
 # Cleanup
 rm -rf ./test_bin
 
