@@ -86,3 +86,7 @@ CONTEXT=false
 MULTI_LINE_PROMPT=false
 ENABLE_DANGER_FLAG=false
 DANGEROUS_COMMANDS=("rm" ">" "mv" "mkfs" ":(){:|:&};" "dd" "chmod" "wget" "curl")
+
+escape() {
+	printf "%s" "$1" | jq -Rrs 'tojson[1:-1]'
+}

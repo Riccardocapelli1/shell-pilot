@@ -121,6 +121,28 @@ This script relies on curl for the requests to the api and jq to parse the json 
    ENABLE_DANGER_FLAG=false
    ```
 
+### Uninstallation
+
+   To remove Shell Pilot from your system, you can run the uninstaller script:
+
+   ```sh
+   # If you have the repo locally
+   sudo bash spilot_uninstall.sh
+
+   # Alternatively, download and run it
+   curl -sS -o spilot_uninstall.sh https://raw.githubusercontent.com/Riccardocapelli1/shell-pilot/main/spilot_uninstall.sh
+   sudo bash spilot_uninstall.sh
+   ```
+
+### Testing
+
+   The project includes a basic test suite to verify core functionality (escaping, API request formatting, Groq tool injection).
+
+   To run the tests:
+   ```sh
+   bash tests/run_tests.sh
+   ```
+
 ### Manual Installation
 
   If you want to install it manually, all you have to do is:
