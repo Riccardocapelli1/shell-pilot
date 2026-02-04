@@ -52,6 +52,20 @@ request_to_completions() {
 			"max_tokens": '$MAX_TOKENS',
 			"temperature": '$TEMPERATURE'
 			}'
+	elif [[ "$USE_API" == "groq" ]]
+	then
+		curl https://api.groq.com/openai/v1/chat/completions \
+		-sS \
+		-H 'Content-Type: application/json' \
+		-H "Authorization: Bearer $GROQ_API_KEY" \
+		-d '{
+			"model": "'"$MODEL_GROQ"'",
+			"messages": [
+				{"role": "user", "content": "'"$prompt"'"}
+				],
+			"max_tokens": '$MAX_TOKENS',
+			"temperature": '$TEMPERATURE'
+			}'
 	else
 		echo "Error: No API specified".
 		exit 1
@@ -181,6 +195,27 @@ request_to_chat() {
       "max_tokens": '$MAX_TOKENS',
       "temperature": '$TEMPERATURE'
     }'
+	elif [[ "$USE_API" == "groq" ]]
+	then
+		local compound_custom=""
+		if [[ "$MODEL_GROQ" == "groq/compound" || "$MODEL_GROQ" == "groq/compound-mini" ]]; then
+			compound_custom=', "compound_custom": {"tools": {"enabled_tools": ["web_search", "code_interpreter", "visit_website"]}}'
+		fi
+		curl https://api.groq.com/openai/v1/chat/completions \
+		-sS \
+		-H "Content-Type: application/json" \
+		-H "Authorization: Bearer $GROQ_API_KEY" \
+		-d '{
+			"model": "'"$MODEL_GROQ"'",
+			"messages": [
+				{"role": "system", "content": "'"$escaped_system_prompt"'"},
+				'"$message"'
+				],
+			"max_tokens": '$MAX_TOKENS',
+			"temperature": '$TEMPERATURE',
+			"stream": false
+			'"$compound_custom"'
+		}'
 	else
 		echo "Error: No API specified".
 		exit 1
@@ -215,4 +250,10 @@ fetch_model_from_novitaai(){
     -H 'Content-Type: application/json' \
     -H 'Accept: application/json' \
     -H "Authorization: Bearer $NOVITA_API_KEY"
+}
+
+fetch_model_from_groq(){
+    curl https://api.groq.com/openai/v1/models \
+    -sS \
+    -H "Authorization: Bearer $GROQ_API_KEY"
 }

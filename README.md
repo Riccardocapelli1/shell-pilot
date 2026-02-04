@@ -2,7 +2,7 @@
   <img src="https://github.com/reid41/shell-pilot/assets/25558653/7d99c212-4b5c-456d-907d-20df16112cd5" alt="shell-pilot">
 </p>
 
-A simple, lightweight shell script to interact with `OpenAI` or `Ollama` or `Mistral AI` or `LocalAI` or `ZhipuAI` or `Athropic` or `Moonshot` or `Novita AI` from the terminal, and enhancing intelligent system management without any dependencies(pure shell).
+A simple, lightweight shell script to interact with `OpenAI` or `Ollama` or `Mistral AI` or `LocalAI` or `ZhipuAI` or `Anthropic` or `Moonshot` or `Novita AI` or `Groq` from the terminal, and enhancing intelligent system management without any dependencies(pure shell).
 </div>
 
 ## Features
@@ -15,6 +15,7 @@ A simple, lightweight shell script to interact with `OpenAI` or `Ollama` or `Mis
 - Use the Anthropic model with the [Anthropic API](https://docs.anthropic.com/en/api/getting-started)
 - Use the Moonshot model with the [Moonshot API](https://platform.moonshot.cn/)
 - Use the Novita AI model with the [Novita AI API](https://novita.ai/llm-api?utm_source=github_shell-pilot&utm_medium=github_readme&utm_campaign=github_link)
+- Use the Groq API for ultra-fast inference with the [Groq Cloud API](https://console.groq.com/) (supports `openai/gpt-oss-120b`, `groq/compound`, etc.)
 - View your history and session persistence
 - Chat context, GPT remembers previous chat questions and answers
 - Pass the input prompt with pipe/redirector(`|`, `<`), as a script parameter or normal chat mode(bash version: 4.0+)
@@ -193,6 +194,10 @@ This script relies on curl for the requests to the api and jq to parse the json 
   # novita ai
   novita_api_key_value=<key>
   echo "export NOVITA_API_KEY=${novita_api_key_value}" >> $the_profile_file
+
+  # groq api
+  groq_api_key_value=<key>
+  echo "export GROQ_API_KEY=${groq_api_key_value}" >> $the_profile_file
 
   source $the_profile_file
   ```
@@ -518,6 +523,8 @@ This script relies on curl for the requests to the api and jq to parse the json 
   - The default model used when starting the script is `llama2` for Ollama.
 
   - The default model used when starting the script is `mistral-small` for MistralAI.
+
+  - The default model used when starting the script is `openai/gpt-oss-120b` for Groq.
   
 ### Use other models for OpenAI or Ollama
   - If you have access to the GPT4 model you can use it by setting the model to `gpt-4`, i.e. `s-pilot --model gpt-4`.
@@ -525,6 +532,11 @@ This script relies on curl for the requests to the api and jq to parse the json 
   - For `Ollama`, you can pull first from the ollama server, i.e. `ollama pull mistral`, `s-pilot e` to set.
 
   - For `MistralAI`, you can check with `s-pilot lm`, and set with `s-pilot e`.
+
+  - For `Groq`, you can use extremely fast models like `openai/gpt-oss-120b` or `openai/gpt-oss-20b`. You can also use **Compound Models** with built-in tools (web search, code interpreter):
+    - `groq/compound`
+    - `groq/compound-mini`
+    Example: `s-pilot m groq/compound` (Shell Pilot automatically enables the required tool configurations).
 
 ### Set request parameters
 
