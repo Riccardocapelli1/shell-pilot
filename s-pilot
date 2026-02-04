@@ -436,6 +436,12 @@ update_config() {
     local config_var_name="$2"  # Variable name to update
     local config_file="${SHELL_PILOT_CONFIG_PATH}/spilot_common.sh"
     local backup_file="${config_file}.bak"
+    local use_sudo=""
+    
+    # Check if we need sudo to write to the config file
+    if [[ ! -w "$config_file" ]]; then
+        use_sudo="sudo"
+    fi
 
     # Read the current value from the configuration file
     local current_value=$(grep "^${config_var_name}=" "$config_file" | cut -d'=' -f2)
@@ -447,11 +453,11 @@ update_config() {
     fi
 
     # Backup the configuration file before updating
-    cp "$config_file" "$backup_file"
+    $use_sudo cp "$config_file" "$backup_file"
 
     # Update the value in the configuration file
     awk -v var_name="${config_var_name}=" -v new_val="$new_value" \
-        '$0 ~ var_name {print var_name new_val; next} 1' "$backup_file" > "$config_file"
+        '$0 ~ var_name {print var_name new_val; next} 1' "$backup_file" | $use_sudo tee "$config_file" > /dev/null
     echo "Attempting to update ${config_var_name} to $new_value."
 
     # Read the updated value to confirm
@@ -460,7 +466,7 @@ update_config() {
     # Check if the update was successful
     if [[ "$updated_value" == "$new_value" ]]; then
         if [ -f "$backup_file" ] && [[ "$current_value" != "$updated_value" ]]; then
-            rm "$backup_file"
+            $use_sudo rm "$backup_file"
             echo "Backup file removed after successful update."
         else
             echo "${config_var_name} updated successfully to $new_value."
@@ -468,7 +474,7 @@ update_config() {
 		echo "The setting will save in the configuration file."
     else
         echo "Failed to update ${config_var_name}. Restoring from backup."
-        mv "$backup_file" "$config_file"
+        $use_sudo mv "$backup_file" "$config_file"
     fi
 }
 
@@ -802,8 +808,10 @@ while [[ "$#" -gt 0 ]]; do
            [[ "${BASH_SOURCE[0]}" != "$0" ]] && return 1 || exit 1
        fi
        ;;
-	m | --model)
+	m | -m | --model)
 		validate_not_empty "$2"
+		# Run validate_config to detect auto-switch before updating model
+		validate_config
 		if [[ "$USE_API" == "openai" ]]; then
 			update_config "$2" "MODEL_OPENAI"
 			check_the_setting "openai model" "MODEL_OPENAI"
