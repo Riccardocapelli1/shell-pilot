@@ -9,78 +9,96 @@ source "${SHELL_PILOT_PLUGINS_PATH}/package_version.sh"
 source "${SHELL_PILOT_PLUGINS_PATH}/system_alias.sh"
 SPINNER_SIGNAL_FILE=${SPILOT_FILES_DEFAULT_DIR}/spilot_spinner_signal
 
-# check if the OPENAI_KEY is set
-if [[ -z "$OPENAI_KEY" && "$USE_API" == "openai" ]]; then
-	echo "You need to set your OPENAI_KEY to use this script!"
-	echo "You can set it temporarily by running this on your terminal: export OPENAI_KEY=YOUR_KEY_HERE"
-	exit 1
-fi
+# Function to validate configuration
+validate_config() {
+	# Validation for help and version flags is skipped implicitly as this function 
+    # should be called after checking for those flags or when needed.
 
-# check if the MISTRAL_API_KEY is set
-if [[ -z "$MISTRAL_API_KEY" && "$USE_API" == "mistralai" ]]; then
-	echo "You need to set your MISTRAL_API_KEY to use this script!"
-	echo "You can set it temporarily by running this on your terminal: export MISTRAL_API_KEY=YOUR_KEY_HERE"
-	exit 1
-fi
+	# Auto-detect Groq if Ollama is default but not configured and Groq key is present
+	if [[ "$USE_API" == "ollama" && -z "$OLLAMA_SERVER_IP" && -n "$GROQ_API_KEY" ]]; then
+		USE_API="groq"
+        # Update config to save this preference if desired, or just use it for this session
+        # update_config "groq" "USE_API" 
+	fi
+    
+    # Auto-detect OpenAI if Ollama is default but not configured and OpenAI key is present
+    if [[ "$USE_API" == "ollama" && -z "$OLLAMA_SERVER_IP" && -n "$OPENAI_KEY" ]]; then
+		USE_API="openai"
+	fi
 
-# check if the ZHIPUAI_API_KEY is set
-if [[ -z "$ZHIPUAI_API_KEY" && "$USE_API" == "zhipuai" ]]; then
-	echo "You need to set your ZHIPUAI_API_KEY to use this script!"
-	echo "You can set it temporarily by running this on your terminal: export ZHIPUAI_API_KEY=YOUR_KEY_HERE"
-	exit 1
-fi
-
-# check if the ZHIPUAI_API_KEY is set
-if [[ -z "$ANTHROPIC_API_KEY" && "$USE_API" == "athropic" ]]; then
-	echo "You need to set your ANTHROPIC_API_KEY to use this script!"
-	echo "You can set it temporarily by running this on your terminal: export ANTHROPIC_API_KEY=YOUR_KEY_HERE"
-	exit 1
-fi
-
-# check if the MOONSHOT_API_KEY is set
-if [[ -z "$MOONSHOT_API_KEY" && "$USE_API" == "moonshot" ]]; then
-	echo "You need to set your MOONSHOT_API_KEY to use this script!"
-	echo "You can set it temporarily by running this on your terminal: export MOONSHOT_API_KEY=YOUR_KEY_HERE"
-	exit 1
-fi
-
-# check if the OLLAMA host is set
-if [[ "$USE_API" == "ollama" ]]; then
-	if [[ -z "$OLLAMA_SERVER_IP" ]]; then
-		echo "Error: OLLAMA_SERVER_IP is not set in the configuration file."
+	# check if the OPENAI_KEY is set
+	if [[ -z "$OPENAI_KEY" && "$USE_API" == "openai" ]]; then
+		echo "You need to set your OPENAI_KEY to use this script!"
+		echo "You can set it temporarily by running this on your terminal: export OPENAI_KEY=YOUR_KEY_HERE"
 		exit 1
 	fi
-	if ! [[ $OLLAMA_SERVER_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-		echo "Error: OLLAMA_SERVER_IP is not a valid IP address."
+
+	# check if the MISTRAL_API_KEY is set
+	if [[ -z "$MISTRAL_API_KEY" && "$USE_API" == "mistralai" ]]; then
+		echo "You need to set your MISTRAL_API_KEY to use this script!"
+		echo "You can set it temporarily by running this on your terminal: export MISTRAL_API_KEY=YOUR_KEY_HERE"
 		exit 1
 	fi
-fi
 
-# check if the OLLAMA host is set
-if [[ "$USE_API" == "localai" ]]; then
-	if [[ -z "$LOCALAI_SERVER_IP" ]]; then
-		echo "Error: LOCALAI_SERVER_IP is not set in the configuration file."
+	# check if the ZHIPUAI_API_KEY is set
+	if [[ -z "$ZHIPUAI_API_KEY" && "$USE_API" == "zhipuai" ]]; then
+		echo "You need to set your ZHIPUAI_API_KEY to use this script!"
+		echo "You can set it temporarily by running this on your terminal: export ZHIPUAI_API_KEY=YOUR_KEY_HERE"
 		exit 1
 	fi
-	if ! [[ $LOCALAI_SERVER_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-		echo "Error: LOCALAI_SERVER_IP is not a valid IP address."
+
+	# check if the ANTHROPIC_API_KEY is set
+	if [[ -z "$ANTHROPIC_API_KEY" && "$USE_API" == "athropic" ]]; then
+		echo "You need to set your ANTHROPIC_API_KEY to use this script!"
+		echo "You can set it temporarily by running this on your terminal: export ANTHROPIC_API_KEY=YOUR_KEY_HERE"
 		exit 1
 	fi
-fi
 
-# check if the NOVITA_API_KEY is set
-if [[ -z "$NOVITA_API_KEY" && "$USE_API" == "novita" ]]; then
-	echo "You need to set your NOVITA_API_KEY to use this script!"
-	echo "You can set it temporarily by running this on your terminal: export NOVITA_API_KEY=YOUR_KEY_HERE"
-	exit 1
-fi
+	# check if the MOONSHOT_API_KEY is set
+	if [[ -z "$MOONSHOT_API_KEY" && "$USE_API" == "moonshot" ]]; then
+		echo "You need to set your MOONSHOT_API_KEY to use this script!"
+		echo "You can set it temporarily by running this on your terminal: export MOONSHOT_API_KEY=YOUR_KEY_HERE"
+		exit 1
+	fi
 
-# check if the GROQ_API_KEY is set
-if [[ -z "$GROQ_API_KEY" && "$USE_API" == "groq" ]]; then
-	echo "You need to set your GROQ_API_KEY to use this script!"
-	echo "You can set it temporarily by running this on your terminal: export GROQ_API_KEY=YOUR_KEY_HERE"
-	exit 1
-fi
+	# check if the OLLAMA host is set
+	if [[ "$USE_API" == "ollama" ]]; then
+		if [[ -z "$OLLAMA_SERVER_IP" ]]; then
+			echo "Error: OLLAMA_SERVER_IP is not set in the configuration file."
+			exit 1
+		fi
+		if ! [[ $OLLAMA_SERVER_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+			echo "Error: OLLAMA_SERVER_IP is not a valid IP address."
+			exit 1
+		fi
+	fi
+
+	# check if the LOCALAI host is set
+	if [[ "$USE_API" == "localai" ]]; then
+		if [[ -z "$LOCALAI_SERVER_IP" ]]; then
+			echo "Error: LOCALAI_SERVER_IP is not set in the configuration file."
+			exit 1
+		fi
+		if ! [[ $LOCALAI_SERVER_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+			echo "Error: LOCALAI_SERVER_IP is not a valid IP address."
+			exit 1
+		fi
+	fi
+
+	# check if the NOVITA_API_KEY is set
+	if [[ -z "$NOVITA_API_KEY" && "$USE_API" == "novita" ]]; then
+		echo "You need to set your NOVITA_API_KEY to use this script!"
+		echo "You can set it temporarily by running this on your terminal: export NOVITA_API_KEY=YOUR_KEY_HERE"
+		exit 1
+	fi
+
+	# check if the GROQ_API_KEY is set
+	if [[ -z "$GROQ_API_KEY" && "$USE_API" == "groq" ]]; then
+		echo "You need to set your GROQ_API_KEY to use this script!"
+		echo "You can set it temporarily by running this on your terminal: export GROQ_API_KEY=YOUR_KEY_HERE"
+		exit 1
+	fi
+}
 
 usage() {
 	cat <<EOF
@@ -873,6 +891,14 @@ elif [ -t 0 ]; then
 else
 	pipe_mode_prompt+=$(cat -)
 fi
+
+# Function to validate configuration settings
+
+
+# Validate config here, after argument parsing but before entering main logic
+# However, if help or version was requested, we might have already exited.
+# If we are here, we are likely proceeding to chat or pipe mode.
+validate_config
 
 while $running; do
 
