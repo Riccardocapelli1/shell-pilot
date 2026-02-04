@@ -91,7 +91,7 @@ This script relies on curl for the requests to the api and jq to parse the json 
    
    ```sh
    curl -sS -o spilot_install.sh https://raw.githubusercontent.com/Riccardocapelli1/shell-pilot/main/spilot_install.sh
-   bash spilot_install.sh
+   sudo bash spilot_install.sh
    ```
 
 ### Local Installation
@@ -99,7 +99,7 @@ This script relies on curl for the requests to the api and jq to parse the json 
    If you have the code locally (cloned via git), you can run the install script directly from the project directory:
 
    ```sh
-   bash spilot_install.sh
+   sudo bash spilot_install.sh
    ```
 
    The script will handle the setup of the configuration files in `/usr/local/bin` (or your preferred path) and initialize the common settings.
