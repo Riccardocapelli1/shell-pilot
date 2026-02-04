@@ -90,7 +90,7 @@ or Groq models
 from the terminal without installing Python or Node.js.
 Open Source and written in 100% Shell (Bash).
 
-https://github.com/reid41/shell-pilot.git
+https://github.com/Riccardocapelli1/shell-pilot.git
 
 For default model:
 OpenAI: "gpt-3.5-turbo" model

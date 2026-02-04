@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/reid41/shell-pilot/assets/25558653/7d99c212-4b5c-456d-907d-20df16112cd5" alt="shell-pilot">
+  <img src="https://github.com/Riccardocapelli1/shell-pilot/assets/25558653/7d99c212-4b5c-456d-907d-20df16112cd5" alt="shell-pilot">
 </p>
 
 A simple, lightweight shell script to interact with `OpenAI` or `Ollama` or `Mistral AI` or `LocalAI` or `ZhipuAI` or `Anthropic` or `Moonshot` or `Novita AI` or `Groq` from the terminal, and enhancing intelligent system management without any dependencies(pure shell).
@@ -31,12 +31,12 @@ A simple, lightweight shell script to interact with `OpenAI` or `Ollama` or `Mis
 
 #### Code chat mode scenario
 
-![code-chat](https://github.com/reid41/shell-pilot/assets/25558653/58eee738-3f54-49c5-a1bb-1ebb87b2f1e5)
+![code-chat](https://github.com/Riccardocapelli1/shell-pilot/assets/25558653/58eee738-3f54-49c5-a1bb-1ebb87b2f1e5)
 
 
 #### Vim/vi scenario
 
-![vi-vim-new](https://github.com/reid41/shell-pilot/assets/25558653/f3b97c20-2861-4392-8cc8-c85ccccf2abb)
+![vi-vim-new](https://github.com/Riccardocapelli1/shell-pilot/assets/25558653/f3b97c20-2861-4392-8cc8-c85ccccf2abb)
 
 ## Disclaimer
 
@@ -90,9 +90,19 @@ This script relies on curl for the requests to the api and jq to parse the json 
    - To install, run this in your terminal and provide your OpenAI API key when asked.
    
    ```sh
-   curl -sS -o spilot_install.sh https://raw.githubusercontent.com/reid41/shell-pilot/main/spilot_install.sh
+   curl -sS -o spilot_install.sh https://raw.githubusercontent.com/Riccardocapelli1/shell-pilot/main/spilot_install.sh
    bash spilot_install.sh
    ```
+
+### Local Installation
+
+   If you have the code locally (cloned via git), you can run the install script directly from the project directory:
+
+   ```sh
+   bash spilot_install.sh
+   ```
+
+   The script will handle the setup of the configuration files in `/usr/local/bin` (or your preferred path) and initialize the common settings.
 
    - Set your local `Ollama` server ip in configuration file `spilot_common.sh` if not set during the installation
    ```sh
@@ -117,7 +127,7 @@ This script relies on curl for the requests to the api and jq to parse the json 
 
   - Download the shell-pilot project files in
   ```shell
-  git clone https://github.com/reid41/shell-pilot.git
+  git clone https://github.com/Riccardocapelli1/shell-pilot.git
 
   cd shell-pilot/
   ```
