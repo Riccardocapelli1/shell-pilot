@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # set -x
-SHELL_PILOT_CONFIG_PATH="/usr/local/bin"
+SHELL_PILOT_CONFIG_PATH="${SHELL_PILOT_CONFIG_PATH:-/usr/local/bin}"
 SHELL_PILOT_PLUGINS_PATH="${SHELL_PILOT_CONFIG_PATH}/plugins"
 COMMON_CONFIG_FILE="${SHELL_PILOT_CONFIG_PATH}/spilot_common.sh"
 source $COMMON_CONFIG_FILE

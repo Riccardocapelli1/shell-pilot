@@ -10,10 +10,12 @@ if [[ -f "$PROJECT_ROOT/.env" ]]; then
 fi
 
 # Setup environment
-export SHELL_PILOT_CONFIG_PATH="./test_bin"
-export SHELL_PILOT_PLUGINS_PATH="./test_bin/plugins"
-export COMMON_CONFIG_FILE="./test_bin/spilot_common.sh"
-mkdir -p ./test_bin/plugins
+# Setup environment
+TEST_BIN_DIR="$SCRIPT_DIR/test_bin"
+export SHELL_PILOT_CONFIG_PATH="$TEST_BIN_DIR"
+export SHELL_PILOT_PLUGINS_PATH="$TEST_BIN_DIR/plugins"
+export COMMON_CONFIG_FILE="$TEST_BIN_DIR/spilot_common.sh"
+mkdir -p "$SHELL_PILOT_PLUGINS_PATH"
 mkdir -p ~/spilot_files_dir
 
 # Mock common config logic for testing
@@ -143,8 +145,116 @@ test_groq_compound_mini_integration() {
 
 test_groq_compound_mini_integration
 
+# 5. CLI Feature Tests
+# Setup test environment with local config files
+setup_cli_tests() {
+    cp "$PROJECT_ROOT/s-pilot" "$SHELL_PILOT_CONFIG_PATH/s-pilot"
+    cp "$PROJECT_ROOT/spilot_common.sh" "$SHELL_PILOT_CONFIG_PATH/spilot_common.sh"
+    cp "$PROJECT_ROOT/spilot_llm_rq_apis.sh" "$SHELL_PILOT_CONFIG_PATH/spilot_llm_rq_apis.sh"
+    # Copy plugins recursively (using . to avoid nested plugins folder)
+    cp -r "$PROJECT_ROOT/plugins/." "$SHELL_PILOT_PLUGINS_PATH/"
+    
+    chmod +x "$SHELL_PILOT_CONFIG_PATH/s-pilot"
+    chmod +w "$SHELL_PILOT_CONFIG_PATH/spilot_common.sh"
+}
+
+setup_cli_tests
+
+# Test Wrapper
+run_spilot() {
+    bash "$SHELL_PILOT_CONFIG_PATH/s-pilot" "$@"
+}
+
+# 5.1 Test Version
+test_version() {
+    output=$(run_spilot -v)
+    if [[ "$output" == *"[Shell Pilot Version]"* ]]; then
+        assert_eq "1" "1" "CLI: -v (version) works"
+    else
+        assert_eq "1" "0" "CLI: -v (version) failed"
+        echo "    Output: $output"
+    fi
+}
+test_version
+
+# 5.2 Test Help
+test_help() {
+    output=$(run_spilot -h)
+    if [[ "$output" == *"Commands:"* && "$output" == *"Options:"* ]]; then
+        assert_eq "1" "1" "CLI: -h (help) works"
+    else
+        assert_eq "1" "0" "CLI: -h (help) failed"
+        echo "    Output: $output"
+    fi
+}
+test_help
+
+# 5.3 Test List Config
+test_list_config() {
+    output=$(run_spilot -lc)
+    if [[ "$output" == *"USE_API"* ]]; then
+        assert_eq "1" "1" "CLI: -lc (list config) works"
+    else
+        assert_eq "1" "0" "CLI: -lc (list config) failed"
+        echo "    Output: $output"
+    fi
+}
+test_list_config
+
+# 5.4 Test Change Provider
+test_change_provider() {
+    # Ensure clean state
+    output=$(run_spilot -cmp groq)
+    # Check if config file was updated (handle quoted or unquoted values)
+    if grep -q 'USE_API=.*groq' "$SHELL_PILOT_CONFIG_PATH/spilot_common.sh"; then
+        assert_eq "1" "1" "CLI: -cmp (change provider) updates config correctly"
+    else
+        assert_eq "1" "0" "CLI: -cmp failed to update config"
+        echo "    Output: $output"
+    fi
+}
+test_change_provider
+
+# 5.5 Test Change Model
+test_change_model() {
+    # Update model for groq
+    output=$(run_spilot -m "groq/compound-mini")
+    
+    if grep -q 'MODEL_GROQ=.*groq/compound-mini' "$SHELL_PILOT_CONFIG_PATH/spilot_common.sh"; then
+        assert_eq "1" "1" "CLI: -m (model) updates config correctly"
+    else
+        assert_eq "1" "0" "CLI: -m failed to update config"
+        echo "    Output: $output"
+    fi
+}
+test_change_model
+
+# 5.6 Test Temperature
+test_temperature() {
+    output=$(run_spilot -t 0.5)
+    if grep -q 'TEMPERATURE=.*0.5' "$SHELL_PILOT_CONFIG_PATH/spilot_common.sh"; then
+        assert_eq "1" "1" "CLI: -t (temperature) updates config correctly"
+    else
+        assert_eq "1" "0" "CLI: -t failed to update config"
+        echo "    Output: $output"
+    fi
+}
+test_temperature
+
+# 5.7 Test Max Tokens
+test_max_tokens() {
+    output=$(run_spilot -mt 2048)
+    if grep -q 'MAX_TOKENS=.*2048' "$SHELL_PILOT_CONFIG_PATH/spilot_common.sh"; then
+        assert_eq "1" "1" "CLI: -mt (max tokens) updates config correctly"
+    else
+        assert_eq "1" "0" "CLI: -mt failed to update config"
+        echo "    Output: $output"
+    fi
+}
+test_max_tokens
+
 # Cleanup
-rm -rf ./test_bin
+rm -rf "$TEST_BIN_DIR"
 
 echo -e "\nSummary: $success_count/$test_count tests passed."
 
