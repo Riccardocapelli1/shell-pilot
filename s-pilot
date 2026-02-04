@@ -17,8 +17,12 @@ validate_config() {
 	# Auto-detect Groq if Ollama is default but not configured and Groq key is present
 	if [[ "$USE_API" == "ollama" && -z "$OLLAMA_SERVER_IP" && -n "$GROQ_API_KEY" ]]; then
 		USE_API="groq"
-        # Update config to save this preference if desired, or just use it for this session
-        # update_config "groq" "USE_API" 
+        # Ensure we set a valid Groq model if the current one is still an Ollama default
+        if [[ "$MODEL_OLLAMA" == "llama2" || "$MODEL_OLLAMA" == "" ]]; then
+             # We don't change the config file, just the runtime variable if needed, 
+             # but here we rely on defaults.
+             : 
+        fi
 	fi
     
     # Auto-detect OpenAI if Ollama is default but not configured and OpenAI key is present
@@ -64,13 +68,23 @@ validate_config() {
 	# check if the OLLAMA host is set
 	if [[ "$USE_API" == "ollama" ]]; then
 		if [[ -z "$OLLAMA_SERVER_IP" ]]; then
-			echo "Error: OLLAMA_SERVER_IP is not set in the configuration file."
-			exit 1
+            # Double check: if we somehow missed the auto-switch earlier or if logic failed.
+            if [[ -n "$GROQ_API_KEY" ]]; then
+                USE_API="groq"
+            elif [[ -n "$OPENAI_KEY" ]]; then
+                USE_API="openai"
+            else
+			    echo "Error: OLLAMA_SERVER_IP is not set in the configuration file."
+			    exit 1
+            fi
 		fi
-		if ! [[ $OLLAMA_SERVER_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-			echo "Error: OLLAMA_SERVER_IP is not a valid IP address."
-			exit 1
-		fi
+        # Only check IP validity if we are STILL using ollama
+        if [[ "$USE_API" == "ollama" ]]; then
+		    if ! [[ $OLLAMA_SERVER_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+			    echo "Error: OLLAMA_SERVER_IP is not a valid IP address."
+			    exit 1
+		    fi
+        fi
 	fi
 
 	# check if the LOCALAI host is set
