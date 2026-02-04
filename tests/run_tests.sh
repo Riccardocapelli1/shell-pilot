@@ -2,6 +2,13 @@
 
 # Shell Pilot Test Suite
 
+# Load environment variables from .env if it exists
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+if [[ -f "$PROJECT_ROOT/.env" ]]; then
+    export $(grep -v '^#' "$PROJECT_ROOT/.env" | xargs)
+fi
+
 # Setup environment
 export SHELL_PILOT_CONFIG_PATH="./test_bin"
 export SHELL_PILOT_PLUGINS_PATH="./test_bin/plugins"
@@ -86,20 +93,36 @@ test_groq_compound_mini_integration() {
     # Unset the mock curl to use the real one
     unset -f curl
     
+    # Re-source .env to ensure GROQ_API_KEY is set
+    if [[ -f "$PROJECT_ROOT/.env" ]]; then
+        source <(grep GROQ_API_KEY "$PROJECT_ROOT/.env")
+    fi
+    
     # Check if GROQ_API_KEY is set
     if [[ -z "$GROQ_API_KEY" ]]; then
         echo -e "\033[33m[SKIP]\033[0m Groq compound-mini API call (GROQ_API_KEY not set)"
         return 0
     fi
     
-    USE_API="groq"
-    MODEL_GROQ="groq/compound-mini"
     SYSTEM_PROMPT="You are a helpful assistant."
     MAX_TOKENS=100
     TEMPERATURE=0.7
     
-    # Make a real API call
-    response=$(request_to_chat '{"role": "user", "content": "Say hello in one word."}')
+    # Make a real API call directly using curl binary
+    escaped_system_prompt=$(escape "$SYSTEM_PROMPT")
+    response=$(/usr/bin/curl https://api.groq.com/openai/v1/chat/completions \
+        -sS \
+        -H 'Content-Type: application/json' \
+        -H "Authorization: Bearer $GROQ_API_KEY" \
+        -d '{
+            "model": "groq/compound-mini",
+            "messages": [
+                {"role": "system", "content": "'"$escaped_system_prompt"'"},
+                {"role": "user", "content": "What command lists a folder content in Ubuntu terminal?"}
+            ],
+            "max_tokens": '$MAX_TOKENS',
+            "temperature": '$TEMPERATURE'
+        }')
     
     # Check if we got a valid response (contains 'choices' or 'content')
     if [[ "$response" == *"choices"* ]] || [[ "$response" == *"content"* ]]; then
