@@ -143,6 +143,32 @@ This script relies on curl for the requests to the api and jq to parse the json 
    bash tests/run_tests.sh
    ```
 
+   For integration tests that call the real Groq API, create a `.env` file in the project root:
+   ```sh
+   echo 'GROQ_API_KEY=your_groq_api_key_here' > .env
+   ```
+
+### Development
+
+   When developing locally, you need to copy your changes to `/usr/local/bin/` to test them:
+
+   ```sh
+   # Copy updated scripts to the system path
+   sudo cp s-pilot /usr/local/bin/s-pilot
+   sudo cp spilot_common.sh /usr/local/bin/spilot_common.sh
+   sudo cp spilot_llm_rq_apis.sh /usr/local/bin/spilot_llm_rq_apis.sh
+   ```
+
+   **Important**: When running `sudo bash spilot_install.sh`, API keys are added to the **root** user's profile (`/root/.profile`), not your own. To use `s-pilot` as a regular user, add your API key to your own shell profile:
+
+   ```sh
+   # Add to your ~/.bashrc or ~/.zshrc
+   echo 'export GROQ_API_KEY="your_groq_api_key_here"' >> ~/.bashrc
+   source ~/.bashrc
+   ```
+
+   **Auto-switching behavior**: If `OLLAMA_SERVER_IP` is not configured but `GROQ_API_KEY` is set, Shell Pilot will automatically use the Groq API instead of failing.
+
 ### Manual Installation
 
   If you want to install it manually, all you have to do is:
