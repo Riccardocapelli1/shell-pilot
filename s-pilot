@@ -112,13 +112,20 @@ validate_config() {
 		echo "You can set it temporarily by running this on your terminal: export GROQ_API_KEY=YOUR_KEY_HERE"
 		exit 1
 	fi
+
+	# check if the NVIDIA_API_KEY is set
+	if [[ -z "$NVIDIA_API_KEY" && "$USE_API" == "nvidia" ]]; then
+		echo "You need to set your NVIDIA_API_KEY to use this script!"
+		echo "You can set it temporarily by running this on your terminal: export NVIDIA_API_KEY=YOUR_KEY_HERE"
+		exit 1
+	fi
 }
 
 usage() {
 	cat <<EOF
 A simple, lightweight shell script to use OpenAI's Language Models and DALL-E 
 or Ollama models or MistralAI models or LocalAI or ZhupuAI or Anthropic models
-or Groq models
+or Groq models or NVIDIA models
 from the terminal without installing Python or Node.js.
 Open Source and written in 100% Shell (Bash).
 
@@ -134,6 +141,7 @@ Anthropic: "claude-3-opus-20240229" model.
 Moonshot: "moonshot-v1-8k" model.
 Groq: "openai/gpt-oss-120b" model.
 - available models also include: openai/gpt-oss-20b, groq/compound, groq/compound-mini.
+NVIDIA: "mistralai/devstral-2-123b-instruct-2512" model.
 
 It will enter "chat" mode without any options, here are some commands you can use:
 
@@ -145,7 +153,7 @@ Commands:
 
 Options:
   cmp, -cmp, --change-model-provider   Change the model provider between openai, 
-                                       ollama, mistralai, localai, zhipuai, anthropic, moonshot, groq
+                                       ollama, mistralai, localai, zhipuai, anthropic, moonshot, groq, nvidia
 
   e, -e, --edit                        Edit the configuration file directly
 
@@ -240,6 +248,8 @@ show_llm_models_output(){
     cat "$LIST_MODELS_CACHE_FILE"
   elif [[ "$USE_API" == "groq" ]]; then
     cat "$LIST_MODELS_CACHE_FILE"
+  elif [[ "$USE_API" == "nvidia" ]]; then
+    cat "$LIST_MODELS_CACHE_FILE"
 	fi
 }
 
@@ -282,6 +292,9 @@ list_models() {
                     ;;
               groq)
                     grep -qi "groq" "$cache_file" && content_valid=true
+                    ;;
+              nvidia)
+                    grep -qi "mistral" "$cache_file" && content_valid=true
                     ;;
             esac
 
@@ -331,6 +344,10 @@ fetch_and_cache_models() {
 				models_response=$(fetch_model_from_groq)
 				handle_error "$models_response"
 				echo $models_response | jq -r -C '.data[] | {id}' > "$cache_file"
+		elif [[ "$USE_API" == "nvidia" ]]; then
+				models_response=$(fetch_model_from_nvidia)
+				handle_error "$models_response"
+				echo $models_response | jq -r -C '.data[] | {id, owned_by, created}' > "$cache_file"
 		else
 				echo "Error: No API specified."
 				exit 1
@@ -597,6 +614,8 @@ code_chat_function(){
 				response_data=$(echo $response | jq -r '.choices[].message.content')
 			elif [[ "$USE_API" == "groq" ]]; then
 				response_data=$(echo $response | jq -r '.choices[].message.content')
+			elif [[ "$USE_API" == "nvidia" ]]; then
+				response_data=$(echo $response | jq -r '.choices[].message.content')
 			fi
 			add_assistant_response_to_chat_message "$(escape "$response_data")"
 			# execute_cmd=$(echo "$response_data" | sed 's/[`$]//g')
@@ -839,6 +858,9 @@ while [[ "$#" -gt 0 ]]; do
 		elif [[ "$USE_API" == "groq" ]]; then
 			update_config "$2" "MODEL_GROQ"
 			check_the_setting "groq model" "MODEL_GROQ"
+		elif [[ "$USE_API" == "nvidia" ]]; then
+			update_config "$2" "MODEL_NVIDIA"
+			check_the_setting "nvidia model" "MODEL_NVIDIA"
 		fi
 		;;
 	mlp | -mlp | --multi-line-prompt)
@@ -858,7 +880,7 @@ while [[ "$#" -gt 0 ]]; do
 	cmp | -cmp | --change-model-provider)
 		validate_not_empty "$2"
 		# check if the model provider is valid
-		if [[ "$2" == "openai" || "$2" == "ollama" || "$2" == "mistralai" || "$2" == "localai"   || "$2" == "zhipuai" || "$2" == "anthropic" || "$2" == "moonshot" || "$2" == "groq" ]]; then
+		if [[ "$2" == "openai" || "$2" == "ollama" || "$2" == "mistralai" || "$2" == "localai"   || "$2" == "zhipuai" || "$2" == "anthropic" || "$2" == "moonshot" || "$2" == "groq" || "$2" == "nvidia" ]]; then
 			# update the model provider
 			update_config "$2" "USE_API"
 			# clean the cache
@@ -866,7 +888,7 @@ while [[ "$#" -gt 0 ]]; do
 			check_the_setting "model provider" "USE_API"
 		else
 			# print error message and exit if the model provider is invalid
-			echo -e "Error: Invalid model provider. Please choose \033[1;36mopenai\033[0m or \033[1;37mmistralai\033[0m or \033[1;35mollama\033[0m or \033[1;35mlocalai\033[0m or \033[1;35mzhipuai\033[0m or \033[1;35manthropic\033[0m or \033[1;35mmoonshot\033[0m or \033[1;35mgroq\033[0m."
+			echo -e "Error: Invalid model provider. Please choose \033[1;36mopenai\033[0m or \033[1;37mmistralai\033[0m or \033[1;35mollama\033[0m or \033[1;35mlocalai\033[0m or \033[1;35mzhipuai\033[0m or \033[1;35manthropic\033[0m or \033[1;35mmoonshot\033[0m or \033[1;35mgroq\033[0m or \033[1;35mnvidia\033[0m."
 			[[ "${BASH_SOURCE[0]}" != "$0" ]] && return 1 || exit 1
 		fi
 		;;
@@ -1034,6 +1056,15 @@ while $running; do
 			wait $dynamic_spinner_pid
 			echo -e "$OVERWRITE_PROCESSING_LINE"
 			echo -e "${SHELLPILOT_CYAN_LABEL}Complete details for model: ${prompt#*model:}\n ${model_data}"
+		elif [[ "$USE_API" == "nvidia" ]]; then
+			models_response=$(fetch_model_from_nvidia)
+			model_data=$(echo $models_response | jq -r -C '.data[] | select(.id=="'"${prompt#*model:}"'")')
+			# stop the spinner
+			cat ${SPINNER_SIGNAL_FILE} >/dev/null 2>&1
+			echo "1" > ${SPINNER_SIGNAL_FILE}
+			wait $dynamic_spinner_pid
+			echo -e "$OVERWRITE_PROCESSING_LINE"
+			echo -e "${SHELLPILOT_CYAN_LABEL}Complete details for model: ${prompt#*model:}\n ${model_data}"
 		else
 			echo "Error: No API specified".
 			exit 1
@@ -1076,6 +1107,8 @@ while $running; do
 		elif [[ "$USE_API" == "novita" ]]; then
 			response_data=$(echo $response | jq -r '.choices[].message.content')
 		elif [[ "$USE_API" == "groq" ]]; then
+			response_data=$(echo $response | jq -r '.choices[].message.content')
+		elif [[ "$USE_API" == "nvidia" ]]; then
 			response_data=$(echo $response | jq -r '.choices[].message.content')
 		fi
 
@@ -1120,7 +1153,7 @@ while $running; do
 		timestamp=$(date +"%Y-%m-%d %H:%M")
 		echo -e "$timestamp $prompt \n$response_data \n" >> $SIPLOT_HISTORY_FILE
 
-	elif [[ "$MODEL_OPENAI" =~ ^gpt- || "$USE_API" == "ollama" || "$USE_API" == "mistralai" || "$USE_API" == "localai" || "$USE_API" == "zhipuai" || "$USE_API" == "anthropic" || "$USE_API" == "novita" || "$USE_API" == "groq" ]]; then
+	elif [[ "$MODEL_OPENAI" =~ ^gpt- || "$USE_API" == "ollama" || "$USE_API" == "mistralai" || "$USE_API" == "localai" || "$USE_API" == "zhipuai" || "$USE_API" == "anthropic" || "$USE_API" == "novita" || "$USE_API" == "groq" || "$USE_API" == "nvidia" ]]; then
 		# escape quotation marks, new lines, backslashes...
 		# enable chat record flag
 		if [[ "$chat_record_flag" == "true" ]]; then
@@ -1155,6 +1188,8 @@ while $running; do
 		elif [[ "$USE_API" == "novita" ]]; then
 			response_data=$(echo $response | jq -r '.choices[].message.content')
 		elif [[ "$USE_API" == "groq" ]]; then
+			response_data=$(echo $response | jq -r '.choices[].message.content')
+		elif [[ "$USE_API" == "nvidia" ]]; then
 			response_data=$(echo $response | jq -r '.choices[].message.content')
 		fi
 

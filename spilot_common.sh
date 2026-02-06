@@ -65,6 +65,11 @@ if [ "$USE_API" == "groq" ]; then
     ORGANIZATION="Groq"
 fi
 
+if [ "$USE_API" == "nvidia" ]; then
+    MODEL_NAME="NVIDIA"
+    ORGANIZATION="NVIDIA"
+fi
+
 # Define prompts using the adjusted settings
 CHAT_INIT_PROMPT="You are $MODEL_NAME, a Large Language Model trained by $ORGANIZATION. You will be answering questions from users. Answer as concisely as possible for each response. Keep the number of items short. Output your answer directly, with no labels in front. Today's date is $CURRENT_DATE."
 SYSTEM_PROMPT="You are $MODEL_NAME, a large language model trained by $ORGANIZATION. Answer as concisely as possible. Current date: $CURRENT_DATE."
@@ -82,6 +87,7 @@ MODEL_MOONSHOT=moonshot-v1-8k
 MODEL_ANTHROPIC=claude-3-opus-20240229
 MODEL_NOVITA=meta-llama/llama-3.3-70b-instruct
 MODEL_GROQ=openai/gpt-oss-120b
+MODEL_NVIDIA=mistralai/devstral-2-123b-instruct-2512
 CONTEXT=false
 MULTI_LINE_PROMPT=false
 ENABLE_DANGER_FLAG=false

@@ -66,6 +66,20 @@ request_to_completions() {
 			"max_tokens": '$MAX_TOKENS',
 			"temperature": '$TEMPERATURE'
 			}'
+	elif [[ "$USE_API" == "nvidia" ]]
+	then
+		curl https://integrate.api.nvidia.com/v1/chat/completions \
+		-sS \
+		-H 'Content-Type: application/json' \
+		-H "Authorization: Bearer $NVIDIA_API_KEY" \
+		-d '{
+			"model": "'"$MODEL_NVIDIA"'",
+			"messages": [
+				{"role": "user", "content": "'"$prompt"'"}
+				],
+			"max_tokens": '$MAX_TOKENS',
+			"temperature": '$TEMPERATURE'
+			}'
 	else
 		echo "Error: No API specified".
 		exit 1
@@ -216,6 +230,22 @@ request_to_chat() {
 			"stream": false
 			'"$compound_custom"'
 		}'
+	elif [[ "$USE_API" == "nvidia" ]]
+	then
+		curl https://integrate.api.nvidia.com/v1/chat/completions \
+		-sS \
+		-H "Content-Type: application/json" \
+		-H "Authorization: Bearer $NVIDIA_API_KEY" \
+		-d '{
+			"model": "'"$MODEL_NVIDIA"'",
+			"messages": [
+				{"role": "system", "content": "'"$escaped_system_prompt"'"},
+				'"$message"'
+				],
+			"max_tokens": '$MAX_TOKENS',
+			"temperature": '$TEMPERATURE',
+			"stream": false
+		}'
 	else
 		echo "Error: No API specified".
 		exit 1
@@ -256,4 +286,10 @@ fetch_model_from_groq(){
     curl https://api.groq.com/openai/v1/models \
     -sS \
     -H "Authorization: Bearer $GROQ_API_KEY"
+}
+
+fetch_model_from_nvidia(){
+    curl https://integrate.api.nvidia.com/v1/models \
+    -sS \
+    -H "Authorization: Bearer $NVIDIA_API_KEY"
 }
