@@ -16,6 +16,7 @@ A simple, lightweight shell script to interact with `OpenAI` or `Ollama` or `Mis
 - Use the Moonshot model with the [Moonshot API](https://platform.moonshot.cn/)
 - Use the Novita AI model with the [Novita AI API](https://novita.ai/llm-api?utm_source=github_shell-pilot&utm_medium=github_readme&utm_campaign=github_link)
 - Use the Groq API for ultra-fast inference with the [Groq Cloud API](https://console.groq.com/) (supports `openai/gpt-oss-120b`, `groq/compound`, etc.)
+- Use the NVIDIA API to access models like `mistralai/devstral-2-123b-instruct-2512` with the [NVIDIA API](https://integrate.api.nvidia.com)
 - View your history and session persistence
 - Chat context, GPT remembers previous chat questions and answers
 - Pass the input prompt with pipe/redirector(`|`, `<`), as a script parameter or normal chat mode(bash version: 4.0+)
@@ -256,6 +257,10 @@ This script relies on curl for the requests to the api and jq to parse the json 
   # groq api
   groq_api_key_value=<key>
   echo "export GROQ_API_KEY=${groq_api_key_value}" >> $the_profile_file
+
+  # nvidia api
+  nvidia_api_key_value=<key>
+  echo "export NVIDIA_API_KEY=${nvidia_api_key_value}" >> $the_profile_file
 
   source $the_profile_file
   ```
@@ -583,6 +588,8 @@ This script relies on curl for the requests to the api and jq to parse the json 
   - The default model used when starting the script is `mistral-small` for MistralAI.
 
   - The default model used when starting the script is `openai/gpt-oss-120b` for Groq.
+
+  - The default model used when starting the script is `mistralai/devstral-2-123b-instruct-2512` for NVIDIA.
   
 ### Use other models for OpenAI or Ollama
   - If you have access to the GPT4 model you can use it by setting the model to `gpt-4`, i.e. `s-pilot --model gpt-4`.
@@ -595,6 +602,9 @@ This script relies on curl for the requests to the api and jq to parse the json 
     - `groq/compound`
     - `groq/compound-mini`
     Example: `s-pilot m groq/compound` (Shell Pilot automatically enables the required tool configurations).
+
+  - For `NVIDIA`, you can use the `mistralai/devstral-2-123b-instruct-2512` model or other available models.
+    Example: `s-pilot cmp nvidia` or `s-pilot m stepfun-ai/step-3.5-flash`.
 
 ### Set request parameters
 
