@@ -4,7 +4,7 @@ GLOBIGNORE="*"
 SHELLPILOT_CYAN_LABEL="\033[94ms-pilot: \033[0m"
 PROCESSING_LABEL="\n\033[92m  Processing... \033[0m\033[0K\r"
 OVERWRITE_PROCESSING_LINE="             \033[0K\r"
-COLUMNS=$(tput cols)
+COLUMNS=80
 
 # version: major.minor.patch
 SHELL_PILOT_VERSION=1.14.7

@@ -2,21 +2,15 @@
   <img src="https://github.com/Riccardocapelli1/shell-pilot/assets/25558653/7d99c212-4b5c-456d-907d-20df16112cd5" alt="shell-pilot">
 </p>
 
-A simple, lightweight shell script to interact with `OpenAI` or `Ollama` or `Mistral AI` or `LocalAI` or `ZhipuAI` or `Anthropic` or `Moonshot` or `Novita AI` or `Groq` from the terminal, and enhancing intelligent system management without any dependencies(pure shell).
+A simple, lightweight shell script to interact with `Groq` or `NVIDIA` APIs from the terminal, enhancing intelligent system management without any dependencies (pure shell).
 </div>
 
 ## Features
 
-- Based on [Ollama](https://ollama.com/) to setup a local LLM repository(`support deepseek, llama3.x, gemma2`), work with [Ollama API](https://github.com/ollama/ollama/blob/main/docs/api.md)
-- Use the official chatgpt model with the [official ChatGPT API](https://openai.com/blog/introducing-chatgpt-and-whisper-apis) from the terminal
-- Use the official Mistral AI model with the [Mistral AI API](https://docs.mistral.ai/)
-- Use the LocalAI model with the [LocalAI API](https://localai.io/)
-- Use the ZhipuAI model with the [ZhipuAI API](https://open.bigmodel.cn/)
-- Use the Anthropic model with the [Anthropic API](https://docs.anthropic.com/en/api/getting-started)
-- Use the Moonshot model with the [Moonshot API](https://platform.moonshot.cn/)
-- Use the Novita AI model with the [Novita AI API](https://novita.ai/llm-api?utm_source=github_shell-pilot&utm_medium=github_readme&utm_campaign=github_link)
+
 - Use the Groq API for ultra-fast inference with the [Groq Cloud API](https://console.groq.com/) (supports `openai/gpt-oss-120b`, `groq/compound`, etc.)
-- Use the NVIDIA API to access models like `mistralai/devstral-2-123b-instruct-2512` with the [NVIDIA API](https://integrate.api.nvidia.com)
+- Use the NVIDIA API to access extremely powerful models with the [NVIDIA API](https://integrate.api.nvidia.com)
+- **Debian Expert Persona**: Built-in system prompt to act as a Debian System Administrator (Italian language supported).
 - View your history and session persistence
 - Chat context, GPT remembers previous chat questions and answers
 - Pass the input prompt with pipe/redirector(`|`, `<`), as a script parameter or normal chat mode(bash version: 4.0+)
@@ -65,7 +59,8 @@ This script relies on curl for the requests to the api and jq to parse the json 
   Linux: should be installed by default
   dnf/yum/apt install jq
   ```
-* An OpenAI API key. Create an account and get a free API Key at [OpenAI](https://beta.openai.com/account/api-keys)
+* A Groq API key: Create an account and get a free API Key at [Groq Cloud](https://console.groq.com/keys)
+* An NVIDIA API key: Get your API Key at [NVIDIA API Catalog](https://integrate.api.nvidia.com)
 
 * Optionally, you can install [glow](https://github.com/charmbracelet/glow) to render responses in markdown 
 
@@ -115,8 +110,8 @@ This script relies on curl for the requests to the api and jq to parse the json 
    e.g.
    TEMPERATURE=0.6
    MAX_TOKENS=4096
-   MODEL_OPENAI=gpt-3.5-turbo
-   MODEL_OLLAMA=llama2
+   MODEL_GROQ=openai/gpt-oss-120b
+   MODEL_NVIDIA=mistralai/devstral-2-123b-instruct-2512
    CONTEXT=false
    MULTI_LINE_PROMPT=false
    ENABLE_DANGER_FLAG=false
@@ -148,6 +143,27 @@ This script relies on curl for the requests to the api and jq to parse the json 
    ```sh
    echo 'GROQ_API_KEY=your_groq_api_key_here' > .env
    ```
+
+### 🧠 Debian Expert System Prompt (Groq)
+
+When using the Groq API, `s-pilot` acts as a specialized Debian System Administrator. It is optimized to:
+- Provide precise Bash commands for Debian Stable.
+- Use `apt` for package management.
+- Handle paths with proper quoting.
+- Include safety warnings for destructive commands.
+- Respond in Italian (Italiano) for expert system analysis.
+
+#### 📝 Example Command Execution Workflow
+
+**Request**: `cmd: mostra lo spazio disco libero in modo leggibile`
+**s-pilot**: `df -h`
+**Execution**:
+```text
+File system     Dim. Usati Dispon. Uso% Montato su
+udev            7.8G     0  7.8G   0% /dev
+/dev/nvme0n1p3  476G  120G  332G  27% /
+...
+```
 
 ### Development
 
@@ -229,36 +245,11 @@ This script relies on curl for the requests to the api and jq to parse the json 
   # add source alias for alias option
   echo "alias ss-pilot='source s-pilot'" >> $the_profile_file
 
-  # openai/mistral key if need
-  # openai
-  openai_api_key_value=<key>
-  echo "export OPENAI_KEY=${openai_api_key_value}" >> $the_profile_file
-
-  # mistral ai
-  mistralai_api_key_value=<key>
-  echo "export MISTRAL_API_KEY=${mistralai_api_key_value}" >> $the_profile_file
-
-  # zhipuai ai
-  zhipuai_api_key_value=<key>
-  echo "export ZHIPUAI_API_KEY=${zhipuai_api_key_value}" >> $the_profile_file
-
-  # anthropic ai
-  anthropic_api_key_value=<key>
-  echo "export ANTHROPIC_API_KEY=${anthropic_api_key_value}" >> $the_profile_file
-
-  # moonshot ai
-  moonshot_api_key_value=<key>
-  echo "export MOONSHOT_API_KEY=${moonshot_api_key_value}" >> $the_profile_file
-
-  # novita ai
-  novita_api_key_value=<key>
-  echo "export NOVITA_API_KEY=${novita_api_key_value}" >> $the_profile_file
-
-  # groq api
+  # Groq API
   groq_api_key_value=<key>
   echo "export GROQ_API_KEY=${groq_api_key_value}" >> $the_profile_file
 
-  # nvidia api
+  # NVIDIA API
   nvidia_api_key_value=<key>
   echo "export NVIDIA_API_KEY=${nvidia_api_key_value}" >> $the_profile_file
 

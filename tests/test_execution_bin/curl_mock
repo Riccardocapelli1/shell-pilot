@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Read the prompt from stdin (JSON)
+JSON_DATA=$(cat)
+
+if [[ "$JSON_DATA" == *"list the current directory content"* ]]; then
+    CMD="ls -F"
+elif [[ "$JSON_DATA" == *"mostra lo spazio disco libero"* ]]; then
+    CMD="df -h"
+elif [[ "$JSON_DATA" == *"check system uptime"* ]]; then
+    CMD="uptime"
+else
+    CMD="echo 'Unknown command'"
+fi
+
+# Return fake Groq response
+echo "{\"choices\": [{\"message\": {\"content\": \"$CMD\"}}]}"

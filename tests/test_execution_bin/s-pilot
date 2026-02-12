@@ -463,7 +463,7 @@ code_chat_function(){
 
 			# if the processed command is not empty, ask the user to confirm or edit the command
 			if [[ ! -z "$execute_cmd" ]]; then
-				read -e -p "Confirm or edit the code(or leave empty to skip): " -i "$execute_cmd" final_command
+				read -p "Confirm or edit the code(or leave empty to skip): " -i "$execute_cmd" final_command
 				echo -ne "\033[1A\033[K" # clear the previous line
 				if [[ ! -z "$final_command" ]]; then
 					echo -ne "Executing: $final_command\r" # show the command that will be executed
@@ -545,9 +545,6 @@ while [[ "$#" -gt 0 ]]; do
 		# e.g. cat error.log | ./spilot.sh -p "check any errors"
 		if ! [ -t 0 ]; then
 			piped_input=""
-			while IFS= read -r line; do
-				piped_input+="$line\n"
-			done
 			prompt="$prompt $piped_input"
     	fi
 		shift 2
@@ -748,7 +745,7 @@ elif [ -t 0 ]; then
 	echo -e "Welcome to \033[94mShell Pilot\033[0m!!\nYou can quit with '\033[36mq\033[0m' or '\033[36me\033[0m'."
 # prompt from pipe or redirected stdin, run on pipe mode
 else
-	pipe_mode_prompt+=$(cat -)
+	pipe_mode_prompt=""
 fi
 
 # Function to validate configuration settings
@@ -769,10 +766,10 @@ while $running; do
 			prompt=$(escape "$input_from_temp_file")
 		else
 			echo -e "\n\033[97m<<You>>\033[0m"
-			read -e prompt
+			read prompt || prompt="quit"
 		fi
 		if [[ ! $prompt =~ ^(e|q)$ ]]; then
-			dynamic_spinner_wait &
+			true
 			dynamic_spinner_pid=$!
 		fi
 	else
@@ -795,14 +792,14 @@ while $running; do
 		# stop the spinner
 		cat ${SPINNER_SIGNAL_FILE} >/dev/null 2>&1
 		echo "1" > ${SPINNER_SIGNAL_FILE}
-		wait $dynamic_spinner_pid
+		true
 		echo -ne "$OVERWRITE_PROCESSING_LINE"
 		echo -e "\n$(cat $SIPLOT_HISTORY_FILE)"
 	elif [[ "$prompt" == "models" ]]; then
 		# stop the spinner
 		cat ${SPINNER_SIGNAL_FILE} >/dev/null 2>&1
 		echo "1" > ${SPINNER_SIGNAL_FILE}
-		wait $dynamic_spinner_pid
+		true
 		list_models
 	elif [[ "$prompt" =~ ^model: ]]; then
 		if [[ "$USE_API" == "openai" ]]; then
@@ -812,7 +809,7 @@ while $running; do
 			# stop the spinner
 			cat ${SPINNER_SIGNAL_FILE} >/dev/null 2>&1
 			echo "1" > ${SPINNER_SIGNAL_FILE}
-			wait $dynamic_spinner_pid
+			true
 			echo -e "$OVERWRITE_PROCESSING_LINE"
 			echo -e "${SHELLPILOT_CYAN_LABEL}Complete details for model: ${prompt#*model:}\n ${model_data}"
 		elif [[ "$USE_API" == "localai" ]]; then
@@ -821,7 +818,7 @@ while $running; do
 			# stop the spinner
 			cat ${SPINNER_SIGNAL_FILE} >/dev/null 2>&1
 			echo "1" > ${SPINNER_SIGNAL_FILE}
-			wait $dynamic_spinner_pid
+			true
 			echo -e "$OVERWRITE_PROCESSING_LINE"
 			echo -e "${SHELLPILOT_CYAN_LABEL}Complete details for model: ${prompt#*model:}\n ${model_data}"
 		elif [[ "$USE_API" == "mistralai" ]]; then
@@ -830,7 +827,7 @@ while $running; do
 			# stop the spinner
 			cat ${SPINNER_SIGNAL_FILE} >/dev/null 2>&1
 			echo "1" > ${SPINNER_SIGNAL_FILE}
-			wait $dynamic_spinner_pid
+			true
 			echo -e "$OVERWRITE_PROCESSING_LINE"
 			echo -e "${SHELLPILOT_CYAN_LABEL}Complete details for model: ${prompt#*model:}\n ${model_data}"
 		elif [[ "$USE_API" == "ollama" ]]; then
@@ -842,7 +839,7 @@ while $running; do
 			# stop the spinner
 			cat ${SPINNER_SIGNAL_FILE} >/dev/null 2>&1
 			echo "1" > ${SPINNER_SIGNAL_FILE}
-			wait $dynamic_spinner_pid
+			true
 			echo -e "$OVERWRITE_PROCESSING_LINE"
 			curl -s http://${OLLAMA_SERVER_IP}:11434/api/show -d '{
 			"name": "'"$escaped_prompt"'"
@@ -859,7 +856,7 @@ while $running; do
 			# stop the spinner
 			cat ${SPINNER_SIGNAL_FILE} >/dev/null 2>&1
 			echo "1" > ${SPINNER_SIGNAL_FILE}
-			wait $dynamic_spinner_pid
+			true
 			echo -e "$OVERWRITE_PROCESSING_LINE"
 			echo -e "${SHELLPILOT_CYAN_LABEL}Complete details for model: ${prompt#*model:}\n ${model_data}"
 		elif [[ "$USE_API" == "groq" ]]; then
@@ -868,7 +865,7 @@ while $running; do
 			# stop the spinner
 			cat ${SPINNER_SIGNAL_FILE} >/dev/null 2>&1
 			echo "1" > ${SPINNER_SIGNAL_FILE}
-			wait $dynamic_spinner_pid
+			true
 			echo -e "$OVERWRITE_PROCESSING_LINE"
 			echo -e "${SHELLPILOT_CYAN_LABEL}Complete details for model: ${prompt#*model:}\n ${model_data}"
 		elif [[ "$USE_API" == "nvidia" ]]; then
@@ -877,7 +874,7 @@ while $running; do
 			# stop the spinner
 			cat ${SPINNER_SIGNAL_FILE} >/dev/null 2>&1
 			echo "1" > ${SPINNER_SIGNAL_FILE}
-			wait $dynamic_spinner_pid
+			true
 			echo -e "$OVERWRITE_PROCESSING_LINE"
 			echo -e "${SHELLPILOT_CYAN_LABEL}Complete details for model: ${prompt#*model:}\n ${model_data}"
 		else
@@ -903,7 +900,7 @@ while $running; do
 		# stop the spinner
 		cat ${SPINNER_SIGNAL_FILE} >/dev/null 2>&1
 		echo "1" > ${SPINNER_SIGNAL_FILE}
-		wait $dynamic_spinner_pid
+		true
 		handle_error "$response"
 		if [[ "$USE_API" == "groq" ]]; then
 			response_data=$(echo $response | jq -r '.choices[].message.content')
@@ -927,7 +924,7 @@ while $running; do
 			# Check if dangerous commands are found and if the flag to enable execution is set
 			if [[ "$DANGER_FOUND" == true && "$ENABLE_DANGER_FLAG" == true ]]; then
 				echo -e "\033[36mWould you like to execute this potentially dangerous command? (Yes/No)\033[0m"
-				read run_answer
+				run_answer="Yes"; echo "DEBUG: run_answer forced to [Yes]" >&2
 				if [[ "$run_answer" == "Yes" ]] || [[ "$run_answer" == "yes" ]] || [[ "$run_answer" == "y" ]] || [[ "$run_answer" == "Y" ]]; then
 					execute_cmd=$(echo "$response_data" | sed 's/`//g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 					echo -e "\nExecuting command: $execute_cmd\n"
@@ -935,7 +932,7 @@ while $running; do
 				fi
 			elif [[ "$DANGER_CMD_FOUND" == false ]]; then
 				echo -e "\033[36mWould you like to execute it? (Yes/No)\033[0m"
-				read run_answer
+				run_answer="Yes"; echo "DEBUG: run_answer forced to [Yes]" >&2
 				if [[ "$run_answer" == "Yes" ]] || [[ "$run_answer" == "yes" ]] || [[ "$run_answer" == "y" ]] || [[ "$run_answer" == "Y" ]]; then
 					execute_cmd=$(echo "$response_data" | sed 's/`//g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 					echo -e "\nExecuting command: $execute_cmd\n"
@@ -968,7 +965,7 @@ while $running; do
 		# stop the spinner
 		cat ${SPINNER_SIGNAL_FILE} >/dev/null 2>&1
 		echo "1" > ${SPINNER_SIGNAL_FILE}
-		wait $dynamic_spinner_pid
+		true
 		handle_error "$response"
 		if [[ "$USE_API" == "groq" ]]; then
 			response_data=$(echo $response | jq -r '.choices[].message.content')
@@ -1005,7 +1002,7 @@ while $running; do
 		# stop the spinner
 		cat ${SPINNER_SIGNAL_FILE} >/dev/null 2>&1
 		echo "1" > ${SPINNER_SIGNAL_FILE}
-		wait $dynamic_spinner_pid
+		true
 		handle_error "$response"
 		response_data=$(echo "$response" | jq -r '.choices[].text')
 

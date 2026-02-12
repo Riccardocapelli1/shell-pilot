@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Arguments are in "$@"
+ARGS="$*"
+
+if [[ "$ARGS" == *"models"* ]]; then
+    echo "{\"data\": [{\"id\": \"groq/compound-mini\"}]}"
+    exit 0
+fi
+
+if [[ "$ARGS" == *"directory content"* ]]; then
+    CMD="ls -F"
+elif [[ "$ARGS" == *"spazio disco"* ]]; then
+    CMD="df -h"
+elif [[ "$ARGS" == *"system uptime"* ]]; then
+    CMD="uptime"
+else
+    CMD="ls -l"
+fi
+
+echo "{\"choices\": [{\"message\": {\"content\": \"$CMD\"}}]}"
