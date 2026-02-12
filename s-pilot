@@ -14,98 +14,6 @@ validate_config() {
 	# Validation for help and version flags is skipped implicitly as this function 
     # should be called after checking for those flags or when needed.
 
-	# Auto-detect Groq if Ollama is default but not configured and Groq key is present
-	if [[ "$USE_API" == "ollama" && -z "$OLLAMA_SERVER_IP" && -n "$GROQ_API_KEY" ]]; then
-		USE_API="groq"
-        # Ensure we set a valid Groq model if the current one is still an Ollama default
-        if [[ "$MODEL_OLLAMA" == "llama2" || "$MODEL_OLLAMA" == "" ]]; then
-             # We don't change the config file, just the runtime variable if needed, 
-             # but here we rely on defaults.
-             : 
-        fi
-	fi
-    
-    # Auto-detect OpenAI if Ollama is default but not configured and OpenAI key is present
-    if [[ "$USE_API" == "ollama" && -z "$OLLAMA_SERVER_IP" && -n "$OPENAI_KEY" ]]; then
-		USE_API="openai"
-	fi
-
-	# check if the OPENAI_KEY is set
-	if [[ -z "$OPENAI_KEY" && "$USE_API" == "openai" ]]; then
-		echo "You need to set your OPENAI_KEY to use this script!"
-		echo "You can set it temporarily by running this on your terminal: export OPENAI_KEY=YOUR_KEY_HERE"
-		exit 1
-	fi
-
-	# check if the MISTRAL_API_KEY is set
-	if [[ -z "$MISTRAL_API_KEY" && "$USE_API" == "mistralai" ]]; then
-		echo "You need to set your MISTRAL_API_KEY to use this script!"
-		echo "You can set it temporarily by running this on your terminal: export MISTRAL_API_KEY=YOUR_KEY_HERE"
-		exit 1
-	fi
-
-	# check if the ZHIPUAI_API_KEY is set
-	if [[ -z "$ZHIPUAI_API_KEY" && "$USE_API" == "zhipuai" ]]; then
-		echo "You need to set your ZHIPUAI_API_KEY to use this script!"
-		echo "You can set it temporarily by running this on your terminal: export ZHIPUAI_API_KEY=YOUR_KEY_HERE"
-		exit 1
-	fi
-
-	# check if the ANTHROPIC_API_KEY is set
-	if [[ -z "$ANTHROPIC_API_KEY" && "$USE_API" == "athropic" ]]; then
-		echo "You need to set your ANTHROPIC_API_KEY to use this script!"
-		echo "You can set it temporarily by running this on your terminal: export ANTHROPIC_API_KEY=YOUR_KEY_HERE"
-		exit 1
-	fi
-
-	# check if the MOONSHOT_API_KEY is set
-	if [[ -z "$MOONSHOT_API_KEY" && "$USE_API" == "moonshot" ]]; then
-		echo "You need to set your MOONSHOT_API_KEY to use this script!"
-		echo "You can set it temporarily by running this on your terminal: export MOONSHOT_API_KEY=YOUR_KEY_HERE"
-		exit 1
-	fi
-
-	# check if the OLLAMA host is set
-	if [[ "$USE_API" == "ollama" ]]; then
-		if [[ -z "$OLLAMA_SERVER_IP" ]]; then
-            # Double check: if we somehow missed the auto-switch earlier or if logic failed.
-            if [[ -n "$GROQ_API_KEY" ]]; then
-                USE_API="groq"
-            elif [[ -n "$OPENAI_KEY" ]]; then
-                USE_API="openai"
-            else
-			    echo "Error: OLLAMA_SERVER_IP is not set in the configuration file."
-			    exit 1
-            fi
-		fi
-        # Only check IP validity if we are STILL using ollama
-        if [[ "$USE_API" == "ollama" ]]; then
-		    if ! [[ $OLLAMA_SERVER_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-			    echo "Error: OLLAMA_SERVER_IP is not a valid IP address."
-			    exit 1
-		    fi
-        fi
-	fi
-
-	# check if the LOCALAI host is set
-	if [[ "$USE_API" == "localai" ]]; then
-		if [[ -z "$LOCALAI_SERVER_IP" ]]; then
-			echo "Error: LOCALAI_SERVER_IP is not set in the configuration file."
-			exit 1
-		fi
-		if ! [[ $LOCALAI_SERVER_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-			echo "Error: LOCALAI_SERVER_IP is not a valid IP address."
-			exit 1
-		fi
-	fi
-
-	# check if the NOVITA_API_KEY is set
-	if [[ -z "$NOVITA_API_KEY" && "$USE_API" == "novita" ]]; then
-		echo "You need to set your NOVITA_API_KEY to use this script!"
-		echo "You can set it temporarily by running this on your terminal: export NOVITA_API_KEY=YOUR_KEY_HERE"
-		exit 1
-	fi
-
 	# check if the GROQ_API_KEY is set
 	if [[ -z "$GROQ_API_KEY" && "$USE_API" == "groq" ]]; then
 		echo "You need to set your GROQ_API_KEY to use this script!"
@@ -123,22 +31,13 @@ validate_config() {
 
 usage() {
 	cat <<EOF
-A simple, lightweight shell script to use OpenAI's Language Models and DALL-E 
-or Ollama models or MistralAI models or LocalAI or ZhupuAI or Anthropic models
-or Groq models or NVIDIA models
+A simple, lightweight shell script to use Groq models or NVIDIA models
 from the terminal without installing Python or Node.js.
 Open Source and written in 100% Shell (Bash).
 
 https://github.com/Riccardocapelli1/shell-pilot.git
 
 For default model:
-OpenAI: "gpt-3.5-turbo" model
-Ollama: "llama2" model.
-MistralAI: "mistral-small" model.
-LocalAI: "gpt-4" model.
-ZhipuAI: "glm-4" model.
-Anthropic: "claude-3-opus-20240229" model.
-Moonshot: "moonshot-v1-8k" model.
 Groq: "openai/gpt-oss-120b" model.
 - available models also include: openai/gpt-oss-20b, groq/compound, groq/compound-mini.
 NVIDIA: "mistralai/devstral-2-123b-instruct-2512" model.
@@ -147,13 +46,12 @@ It will enter "chat" mode without any options, here are some commands you can us
 
 Commands:
   history - To view your chat history
-  models - To get a list of the models available at OpenAI/localai/ollama/mistralai
+  models - To get a list of the models available at Groq/NVIDIA
   model: - To view all the information on a specific model, start a prompt with model: and the model id as it appears in the list of models. For example: "model:text-babbage:001" will get you all the fields for text-babbage:001 model
   cmd: - To get a command with the specified functionality and run it, just type "cmd:" and explain what you want to achieve. The script will always ask you if you want to execute the command.
 
 Options:
-  cmp, -cmp, --change-model-provider   Change the model provider between openai, 
-                                       ollama, mistralai, localai, zhipuai, anthropic, moonshot, groq, nvidia
+  cmp, -cmp, --change-model-provider   Change the model provider between groq and nvidia
 
   e, -e, --edit                        Edit the configuration file directly
 
@@ -173,7 +71,7 @@ Options:
 
   lc, -lc, --list-config               List s-pilot common config
 
-  lm, -lm, --list-models               List available openAI/ollama models
+  lm, -lm, --list-models               List available Groq/NVIDIA models
 
   lr, -lr, --list-chat-record          List chat record files
 
@@ -188,8 +86,7 @@ Options:
   cr, -cr, --chat-recording            Enable chat recording, which will save all the chat history in a file
 
   c, -c, --chat-context      For models that do not support chat context by
-                             default (all models except gpt-3.5-turbo and
-                             gpt-4), you can enable chat context, for the
+                             default, you can enable chat context, for the
                              model to remember your previous questions and
                              its previous answers. It also makes models
                              aware of todays date and what data it was trained
@@ -208,10 +105,10 @@ EOF
 # error handling function
 # $1 should be the response body
 handle_error() {
-	# check if USE_API is openai
-	if [[ "$USE_API" == "openai" ]]; then
+	# check if USE_API is groq
+	if [[ "$USE_API" == "groq" ]]; then
 		if echo "$1" | jq -e '.error' >/dev/null; then
-			echo -e "Your request to Open AI API failed: \033[0;31m$(echo "$1" | jq -r '.error.type')\033[0m"
+			echo -e "Your request to Groq API failed: \033[0;31m$(echo "$1" | jq -r '.error.type')\033[0m"
 			echo "$1" | jq -r '.error.message'
 			exit 1
 		fi
@@ -234,19 +131,7 @@ convert_size() {
 show_llm_models_output(){
 		# cache file is present, read from the cache
 	echo -ne "\n\033[36mReading from the cache and the cache_max_age is: ${CACHE_MAX_AGE} seconds, please check the config file if need to reset!\n\033[0m"
-	if [[ "$USE_API" == "ollama" ]]; then
-		cat "$LIST_MODELS_CACHE_FILE" | jq -c '.' | while read -r model; do
-			format_and_display "$model"
-		done
-	elif [[ "$USE_API" == "openai" ]]; then
-		cat "$LIST_MODELS_CACHE_FILE"
-	elif [[ "$USE_API" == "mistralai" ]]; then
-		cat "$LIST_MODELS_CACHE_FILE"
-	elif [[ "$USE_API" == "localai" ]]; then
-		cat "$LIST_MODELS_CACHE_FILE"
-  elif [[ "$USE_API" == "novita" ]]; then
-    cat "$LIST_MODELS_CACHE_FILE"
-  elif [[ "$USE_API" == "groq" ]]; then
+	if [[ "$USE_API" == "groq" ]]; then
     cat "$LIST_MODELS_CACHE_FILE"
   elif [[ "$USE_API" == "nvidia" ]]; then
     cat "$LIST_MODELS_CACHE_FILE"
@@ -278,18 +163,6 @@ list_models() {
 			# Fix the issue of changing the API with "e" option
             local content_valid=false
             case $USE_API in
-                ollama)
-                    grep -qi "llama" "$cache_file" && content_valid=true
-                    ;;
-                openai)
-                    grep -qi "gpt" "$cache_file" && content_valid=true
-                    ;;
-                mistralai)
-                    grep -qi "mistral" "$cache_file" && content_valid=true
-                    ;;
-              localai)
-                    grep -qi "stablediffusion" "$cache_file" && content_valid=true
-                    ;;
               groq)
                     grep -qi "groq" "$cache_file" && content_valid=true
                     ;;
@@ -323,24 +196,7 @@ list_models() {
 fetch_and_cache_models() {
 		local cache_file=$1
 		echo -ne "\n\033[36mFetching it from the API and store it for cache...\n\033[0m"
-		if [[ "$USE_API" == "ollama" ]]; then
-				models_response=$(fetch_model_from_ollama)
-				echo $models_response | jq -c '.models[]' > "$cache_file"
-		elif [[ "$USE_API" == "openai" ]]; then
-				models_response=$(fetch_model_from_openai)
-				handle_error "$models_response"
-				echo $models_response | jq -r -C '.data[] | {id, owned_by, created}' > "$cache_file"
-		elif [[ "$USE_API" == "localai" ]]; then
-				models_response=$(fetch_model_from_localai)
-				echo $models_response | jq -r -C '.data[] | {id, object}' > "$cache_file"
-		elif [[ "$USE_API" == "mistralai" ]]; then
-				models_response=$(fetch_model_from_mistralai)
-				echo $models_response | jq -r -C '.data[] | {id, owned_by, created}'  > "$cache_file"
-		elif [[ "$USE_API" == "novita" ]]; then
-				models_response=$(fetch_model_from_novitaai)
-				handle_error "$models_response"
-				echo $models_response | jq -r -C '.data[] | {id, owned_by, created}' > "$cache_file"
-		elif [[ "$USE_API" == "groq" ]]; then
+		if [[ "$USE_API" == "groq" ]]; then
 				models_response=$(fetch_model_from_groq)
 				handle_error "$models_response"
 				echo $models_response | jq -r -C '.data[] | {id}' > "$cache_file"
@@ -596,23 +452,7 @@ code_chat_function(){
 			build_user_chat_message "$request_prompt"
 			response=$(request_to_chat "$chat_message")
 			handle_error "$response"
-			if [[ "$USE_API" == "ollama" ]]; then
-				response_data=$(echo $response | jq -r '.message.content')
-			elif [[ "$USE_API" == "openai" ]]; then
-				response_data=$(echo $response | jq -r '.choices[].message.content')
-			elif [[ "$USE_API" == "localai" ]]; then
-				response_data=$(echo $response | jq -r '.choices[].message.content')
-			elif [[ "$USE_API" == "mistralai" ]]; then
-				response_data=$(echo $response | jq -r '.choices[].message.content')
-			elif [[ "$USE_API" == "zhipuai" ]]; then
-				response_data=$(echo $response | jq -r '.choices[].message.content')
-			elif [[ "$USE_API" == "anthropic" ]]; then
-				response_data=$(echo $response | jq -r '.content[0].text')
-			elif [[ "$USE_API" == "moonshot" ]]; then
-				response_data=$(echo $response | jq -r '.choices[].message.content')
-			elif [[ "$USE_API" == "novita" ]]; then
-				response_data=$(echo $response | jq -r '.choices[].message.content')
-			elif [[ "$USE_API" == "groq" ]]; then
+			if [[ "$USE_API" == "groq" ]]; then
 				response_data=$(echo $response | jq -r '.choices[].message.content')
 			elif [[ "$USE_API" == "nvidia" ]]; then
 				response_data=$(echo $response | jq -r '.choices[].message.content')
@@ -831,31 +671,7 @@ while [[ "$#" -gt 0 ]]; do
 		validate_not_empty "$2"
 		# Run validate_config to detect auto-switch before updating model
 		validate_config
-		if [[ "$USE_API" == "openai" ]]; then
-			update_config "$2" "MODEL_OPENAI"
-			check_the_setting "openai model" "MODEL_OPENAI"
-		elif [[ "$USE_API" == "localai" ]]; then
-			update_config "$2" "MODEL_LOCALAI"
-			check_the_setting "localai model" "MODEL_LOCALAI"
-		elif [[ "$USE_API" == "mistralai" ]]; then
-			update_config "$2" "MODEL_MISTRALAI"
-			check_the_setting "mistralai model" "MODEL_MISTRALAI"
-		elif [[ "$USE_API" == "ollama" ]]; then
-			update_config "$2" "MODEL_OLLAMA"
-			check_the_setting "ollama model" "MODEL_OLLAMA"
-		elif [[ "$USE_API" == "zhipuai" ]]; then
-			update_config "$2" "MODEL_ZHIPUAI"
-			check_the_setting "zhipuai model" "MODEL_ZHIPUAI"
-		elif [[ "$USE_API" == "anthropic" ]]; then
-			update_config "$2" "MODEL_ANTHROPIC"
-			check_the_setting "anthropic model" "MODEL_ANTHROPIC"
-		elif [[ "$USE_API" == "moonshot" ]]; then
-			update_config "$2" "MODEL_MOONSHOT"
-			check_the_setting "moonshot model" "MODEL_MOONSHOT"
-		elif [[ "$USE_API" == "novita" ]]; then
-			update_config "$2" "MODEL_NOVITA"
-			check_the_setting "novita model" "MODEL_NOVITA"
-		elif [[ "$USE_API" == "groq" ]]; then
+		if [[ "$USE_API" == "groq" ]]; then
 			update_config "$2" "MODEL_GROQ"
 			check_the_setting "groq model" "MODEL_GROQ"
 		elif [[ "$USE_API" == "nvidia" ]]; then
@@ -880,7 +696,7 @@ while [[ "$#" -gt 0 ]]; do
 	cmp | -cmp | --change-model-provider)
 		validate_not_empty "$2"
 		# check if the model provider is valid
-		if [[ "$2" == "openai" || "$2" == "ollama" || "$2" == "mistralai" || "$2" == "localai"   || "$2" == "zhipuai" || "$2" == "anthropic" || "$2" == "moonshot" || "$2" == "groq" || "$2" == "nvidia" ]]; then
+		if [[ "$2" == "groq" || "$2" == "nvidia" ]]; then
 			# update the model provider
 			update_config "$2" "USE_API"
 			# clean the cache
@@ -888,7 +704,7 @@ while [[ "$#" -gt 0 ]]; do
 			check_the_setting "model provider" "USE_API"
 		else
 			# print error message and exit if the model provider is invalid
-			echo -e "Error: Invalid model provider. Please choose \033[1;36mopenai\033[0m or \033[1;37mmistralai\033[0m or \033[1;35mollama\033[0m or \033[1;35mlocalai\033[0m or \033[1;35mzhipuai\033[0m or \033[1;35manthropic\033[0m or \033[1;35mmoonshot\033[0m or \033[1;35mgroq\033[0m or \033[1;35mnvidia\033[0m."
+			echo -e "Error: Invalid model provider. Please choose \033[1;35mgroq\033[0m or \033[1;35mnvidia\033[0m."
 			[[ "${BASH_SOURCE[0]}" != "$0" ]] && return 1 || exit 1
 		fi
 		;;
@@ -1090,23 +906,7 @@ while $running; do
 		echo "1" > ${SPINNER_SIGNAL_FILE}
 		wait $dynamic_spinner_pid
 		handle_error "$response"
-		if [[ "$USE_API" == "ollama" ]]; then
-			response_data=$(echo $response | jq -r '.message.content')
-		elif [[ "$USE_API" == "openai" ]]; then
-			response_data=$(echo $response | jq -r '.choices[].message.content')
-		elif [[ "$USE_API" == "moonshot" ]]; then
-			response_data=$(echo $response | jq -r '.choices[].message.content')
-		elif [[ "$USE_API" == "localai" ]]; then
-			response_data=$(echo $response | jq -r '.choices[].message.content')
-		elif [[ "$USE_API" == "mistralai" ]]; then
-			response_data=$(echo $response | jq -r '.choices[].message.content')
-		elif [[ "$USE_API" == "zhipuai" ]]; then
-			response_data=$(echo $response | jq -r '.choices[].message.content')
-		elif [[ "$USE_API" == "anthropic" ]]; then
-			response_data=$(echo $response | jq -r '.content[0].text')
-		elif [[ "$USE_API" == "novita" ]]; then
-			response_data=$(echo $response | jq -r '.choices[].message.content')
-		elif [[ "$USE_API" == "groq" ]]; then
+		if [[ "$USE_API" == "groq" ]]; then
 			response_data=$(echo $response | jq -r '.choices[].message.content')
 		elif [[ "$USE_API" == "nvidia" ]]; then
 			response_data=$(echo $response | jq -r '.choices[].message.content')
@@ -1153,7 +953,7 @@ while $running; do
 		timestamp=$(date +"%Y-%m-%d %H:%M")
 		echo -e "$timestamp $prompt \n$response_data \n" >> $SIPLOT_HISTORY_FILE
 
-	elif [[ "$MODEL_OPENAI" =~ ^gpt- || "$USE_API" == "ollama" || "$USE_API" == "mistralai" || "$USE_API" == "localai" || "$USE_API" == "zhipuai" || "$USE_API" == "anthropic" || "$USE_API" == "novita" || "$USE_API" == "groq" || "$USE_API" == "nvidia" ]]; then
+	elif [[ "$USE_API" == "groq" || "$USE_API" == "nvidia" ]]; then
 		# escape quotation marks, new lines, backslashes...
 		# enable chat record flag
 		if [[ "$chat_record_flag" == "true" ]]; then
@@ -1171,23 +971,7 @@ while $running; do
 		echo "1" > ${SPINNER_SIGNAL_FILE}
 		wait $dynamic_spinner_pid
 		handle_error "$response"
-		if [[ "$USE_API" == "ollama" ]]; then
-			response_data=$(echo $response | jq -r '.message.content')
-		elif [[ "$USE_API" == "openai" ]]; then
-			response_data=$(echo $response | jq -r '.choices[].message.content')
-		elif [[ "$USE_API" == "moonshot" ]]; then
-			response_data=$(echo $response | jq -r '.choices[].message.content')
-		elif [[ "$USE_API" == "localai" ]]; then
-			response_data=$(echo $response | jq -r '.choices[].message.content')
-		elif [[ "$USE_API" == "mistralai" ]]; then
-			response_data=$(echo $response | jq -r '.choices[].message.content')
-		elif [[ "$USE_API" == "zhipuai" ]]; then
-			response_data=$(echo $response | jq -r '.choices[].message.content')
-		elif [[ "$USE_API" == "anthropic" ]]; then
-			response_data=$(echo $response | jq -r '.content[0].text')
-		elif [[ "$USE_API" == "novita" ]]; then
-			response_data=$(echo $response | jq -r '.choices[].message.content')
-		elif [[ "$USE_API" == "groq" ]]; then
+		if [[ "$USE_API" == "groq" ]]; then
 			response_data=$(echo $response | jq -r '.choices[].message.content')
 		elif [[ "$USE_API" == "nvidia" ]]; then
 			response_data=$(echo $response | jq -r '.choices[].message.content')

@@ -16,49 +16,9 @@ SPILOT_FILES_DEFAULT_DIR=~/spilot_files_dir
 CACHE_MAX_AGE=3600
 LIST_MODELS_CACHE_FILE="$SPILOT_FILES_DEFAULT_DIR/models_list.cache"
 
-# Configuration settings: ollama, openai, mistralai
-USE_API=ollama
+# Configuration settings: groq, nvidia
+USE_API=groq
 CURRENT_DATE=$(date +%m/%d/%Y)
-
-# Set default values for Ollama settings
-if [ "$USE_API" == "ollama" ]; then
-    MODEL_NAME="Ollama"
-    ORGANIZATION="Ollama"
-fi
-
-# Adjust settings for OpenAI settings
-if [ "$USE_API" == "openai" ]; then
-    MODEL_NAME="ChatGPT"
-    ORGANIZATION="OpenAI"
-fi
-
-# Adjust settings for Mistral AI API
-if [ "$USE_API" == "mistralai" ]; then
-    MODEL_NAME="Mistral AI"
-    ORGANIZATION="Mistral AI"
-fi
-
-# Adjust settings for Mistral AI API
-if [ "$USE_API" == "localai" ]; then
-    MODEL_NAME="LocalAI"
-    ORGANIZATION="LocalAI"
-fi
-
-# Adjust settings for ZhipuAI AI API
-if [ "$USE_API" == "zhipuai" ]; then
-    MODEL_NAME="ZhipuAI"
-    ORGANIZATION="ZhipuAI"
-fi
-
-if [ "$USE_API" == "moonshot" ]; then
-    MODEL_NAME="Moonshot"
-    ORGANIZATION="Moonshot"
-fi
-
-if [ "$USE_API" == "novita" ]; then
-    MODEL_NAME="Novita AI"
-    ORGANIZATION="Novita AI"
-fi
 
 if [ "$USE_API" == "groq" ]; then
     MODEL_NAME="Groq"
@@ -78,14 +38,6 @@ COMMAND_GENERATION_PROMPT="You are a Command Line Interface expert and your task
 # chat settings
 TEMPERATURE=0.9
 MAX_TOKENS=4096
-MODEL_OPENAI=gpt-3.5-turbo
-MODEL_OLLAMA=llama2
-MODEL_MISTRALAI=mistral-small
-MODEL_LOCALAI=gpt-4
-MODEL_ZHIPUAI=glm-4
-MODEL_MOONSHOT=moonshot-v1-8k
-MODEL_ANTHROPIC=claude-3-opus-20240229
-MODEL_NOVITA=meta-llama/llama-3.3-70b-instruct
 MODEL_GROQ=openai/gpt-oss-120b
 MODEL_NVIDIA=mistralai/devstral-2-123b-instruct-2512
 CONTEXT=false

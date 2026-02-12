@@ -201,80 +201,29 @@ get_and_confirm_api_key() {
 
 
 # Prompt the user to enter the API keys
-echo "==> The script will add the OPENAI_KEY/GROQ_API_KEY environment variables to your shell profile and add /usr/local/bin to your PATH."
+echo "==> The script will add the GROQ_API_KEY/NVIDIA_API_KEY environment variables to your shell profile and add /usr/local/bin to your PATH."
 read -p "==> Would you like to continue? (y/n): " -n 1 -r
 echo
 
 
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-  openai_key=$(get_and_confirm_api_key "OpenAI API key")
   groq_key=$(get_and_confirm_api_key "Groq API key")
+  nvidia_key=$(get_and_confirm_api_key "NVIDIA API key")
 
   # Determine which shell profile is present and add the API keys
   if [ -f ~/.zprofile ]; then
-    [[ ! -z "$openai_key" ]] && echo "export OPENAI_KEY='$openai_key'" >> ~/.zprofile
     [[ ! -z "$groq_key" ]] && echo "export GROQ_API_KEY='$groq_key'" >> ~/.zprofile
+    [[ ! -z "$nvidia_key" ]] && echo "export NVIDIA_API_KEY='$nvidia_key'" >> ~/.zprofile
   elif [ -f ~/.zshrc ]; then
-    [[ ! -z "$openai_key" ]] && echo "export OPENAI_KEY='$openai_key'" >> ~/.zshrc
     [[ ! -z "$groq_key" ]] && echo "export GROQ_API_KEY='$groq_key'" >> ~/.zshrc
+    [[ ! -z "$nvidia_key" ]] && echo "export NVIDIA_API_KEY='$nvidia_key'" >> ~/.zshrc
   elif [ -f ~/.bash_profile ]; then
-    [[ ! -z "$openai_key" ]] && echo "export OPENAI_KEY='$openai_key'" >> ~/.bash_profile
     [[ ! -z "$groq_key" ]] && echo "export GROQ_API_KEY='$groq_key'" >> ~/.bash_profile
+    [[ ! -z "$nvidia_key" ]] && echo "export NVIDIA_API_KEY='$nvidia_key'" >> ~/.bash_profile
   elif [ -f ~/.profile ]; then
-    [[ ! -z "$openai_key" ]] && echo "export OPENAI_KEY='$openai_key'" >> ~/.profile
     [[ ! -z "$groq_key" ]] && echo "export GROQ_API_KEY='$groq_key'" >> ~/.profile
+    [[ ! -z "$nvidia_key" ]] && echo "export NVIDIA_API_KEY='$nvidia_key'" >> ~/.profile
   else
     echo "Could not find a known shell profile. Please manually add your API keys."
   fi
-fi
-
-
-# Function to check and append server IP to the specified configuration file
-add_server_ip() {
-  local config_file=$1
-  local server_var_name=$2
-
-  # Check if the server IP variable already exists in the configuration file
-  if grep -q "^$server_var_name=" "$config_file"; then
-    local existing_ip=$(grep "^$server_var_name=" "$config_file" | cut -d'=' -f2)
-    if [[ $existing_ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-      echo "$server_var_name is already set to a valid IP address: $existing_ip"
-      return 0
-    else
-      echo "Error: $server_var_name is set but not valid: $existing_ip"
-      return 1
-    fi
-  else
-    # The variable does not exist, prompt user for input
-    while true; do
-      read -p "Enter the $server_var_name (q to quit): " ip_address
-      if [[ $ip_address =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        echo "$server_var_name=$ip_address" >> "$config_file"
-        echo "$server_var_name added to $config_file"
-        break
-      elif [[ "$ip_address" == "q" ]]; then
-        echo "$server_var_name not added."
-        break
-      else
-        echo "Error: Invalid IP address entered. Please enter a valid IP address."
-      fi
-    done
-  fi
-}
-
-# Specify the configuration file path
-CONFIG_FILE="${INSTALL_PATH}/spilot_common.sh"
-
-# Check and append OLLAMA_SERVER_IP
-if add_server_ip "$CONFIG_FILE" "OLLAMA_SERVER_IP"; then
-  echo "Operation successful for OLLAMA_SERVER_IP."
-else
-  echo "Operation failed for OLLAMA_SERVER_IP. Please check the errors above."
-fi
-
-# Check and append LOCALAI_SERVER_IP
-if add_server_ip "$CONFIG_FILE" "LOCALAI_SERVER_IP"; then
-  echo "Operation successful for LOCALAI_SERVER_IP."
-else
-  echo "Operation failed for LOCALAI_SERVER_IP. Please check the errors above."
 fi
