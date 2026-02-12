@@ -16,7 +16,7 @@ request_to_completions() {
 			"messages": [
 				{"role": "user", "content": "'"$prompt"'"}
 				],
-			"max_tokens": '$MAX_TOKENS',
+			"max_completion_tokens": '$MAX_TOKENS',
 			"temperature": '$TEMPERATURE'
 			}'
 	elif [[ "$USE_API" == "nvidia" ]]
@@ -61,7 +61,7 @@ request_to_chat() {
 				{"role": "system", "content": "'"$escaped_system_prompt"'"},
 				'"$message"'
 				],
-			"max_tokens": '$MAX_TOKENS',
+			"max_completion_tokens": '$MAX_TOKENS',
 			"temperature": '$TEMPERATURE',
 			"stream": false
 			'"$compound_custom"'
