@@ -63,15 +63,28 @@ request_to_chat() {
 				],
 			"max_completion_tokens": '$MAX_TOKENS',
 			"temperature": '$TEMPERATURE',
-			"stream": false
+			"stream": '$STREAM'
 			'"$compound_custom"'
 		}'
 	elif [[ "$USE_API" == "nvidia" ]]
 	then
+		# Support streaming headers if enabled in config
+		local stream="$STREAM"
+		local accept_header='Accept: application/json'
+		if [[ "$stream" == "true" ]]; then
+			accept_header='Accept: text/event-stream'
+		fi
+
+		local chat_template_kwargs=""
+		if [[ "$MODEL_NVIDIA" == "moonshotai/kimi-k2.5" ]]; then
+			chat_template_kwargs=', "chat_template_kwargs": {"thinking": true}'
+		fi
+
 		curl https://integrate.api.nvidia.com/v1/chat/completions \
 		-sS \
 		-H "Content-Type: application/json" \
 		-H "Authorization: Bearer $NVIDIA_API_KEY" \
+		-H "$accept_header" \
 		-d '{
 			"model": "'"$MODEL_NVIDIA"'",
 			"messages": [
@@ -80,7 +93,9 @@ request_to_chat() {
 				],
 			"max_tokens": '$MAX_TOKENS',
 			"temperature": '$TEMPERATURE',
-			"stream": false
+			"top_p": 1.00,
+			"stream": '$stream'
+			'"$chat_template_kwargs"'
 		}'
 	else
 		echo "Error: No API specified".

@@ -41,6 +41,7 @@ For default model:
 Groq: "openai/gpt-oss-120b" model.
 - available models also include: openai/gpt-oss-20b, groq/compound, groq/compound-mini.
 NVIDIA: "mistralai/devstral-2-123b-instruct-2512" model.
+- available models also include: moonshotai/kimi-k2.5.
 
 It will enter "chat" mode without any options, here are some commands you can use:
 
@@ -131,11 +132,7 @@ convert_size() {
 show_llm_models_output(){
 		# cache file is present, read from the cache
 	echo -ne "\n\033[36mReading from the cache and the cache_max_age is: ${CACHE_MAX_AGE} seconds, please check the config file if need to reset!\n\033[0m"
-	if [[ "$USE_API" == "groq" ]]; then
-    cat "$LIST_MODELS_CACHE_FILE"
-  elif [[ "$USE_API" == "nvidia" ]]; then
-    cat "$LIST_MODELS_CACHE_FILE"
-	fi
+	cat "$LIST_MODELS_CACHE_FILE"
 }
 
 # list the models
@@ -162,14 +159,9 @@ list_models() {
             # Additional check for API content
 			# Fix the issue of changing the API with "e" option
             local content_valid=false
-            case $USE_API in
-              groq)
-                    grep -qi "groq" "$cache_file" && content_valid=true
-                    ;;
-              nvidia)
-                    grep -qi "mistral" "$cache_file" && content_valid=true
-                    ;;
-            esac
+            if grep -qi "groq" "$cache_file" && grep -qi "nvidia" "$cache_file"; then
+                content_valid=true
+            fi
 
             if [[ "$content_valid" == true ]]; then
                 show_llm_models_output
@@ -195,19 +187,35 @@ list_models() {
 # fetch and cache the models
 fetch_and_cache_models() {
 		local cache_file=$1
-		echo -ne "\n\033[36mFetching it from the API and store it for cache...\n\033[0m"
-		if [[ "$USE_API" == "groq" ]]; then
-				models_response=$(fetch_model_from_groq)
-				handle_error "$models_response"
-				echo $models_response | jq -r -C '.data[] | {id}' > "$cache_file"
-		elif [[ "$USE_API" == "nvidia" ]]; then
-				models_response=$(fetch_model_from_nvidia)
-				handle_error "$models_response"
-				echo $models_response | jq -r -C '.data[] | {id, owned_by, created}' > "$cache_file"
-		else
-				echo "Error: No API specified."
-				exit 1
+		echo -ne "\n\033[36mFetching models from Groq and NVIDIA APIs...\n\033[0m"
+		
+		# Temporary files for each provider
+		local groq_tmp=$(mktemp)
+		local nvidia_tmp=$(mktemp)
+		
+		# Fetch Groq models
+		if [[ -n "$GROQ_API_KEY" ]]; then
+				groq_response=$(fetch_model_from_groq)
+				if echo "$groq_response" | jq -e .data >/dev/null 2>&1; then
+						echo "$groq_response" | jq -r -C '.data[] | {id, provider: "groq"}' > "$groq_tmp"
+				else
+						echo -e "\033[33mWarning: Failed to fetch Groq models.\033[0m"
+				fi
 		fi
+		
+		# Fetch NVIDIA models
+		if [[ -n "$NVIDIA_API_KEY" ]]; then
+				nvidia_response=$(fetch_model_from_nvidia)
+				if echo "$nvidia_response" | jq -e .data >/dev/null 2>&1; then
+						echo "$nvidia_response" | jq -r -C '.data[] | {id, provider: "nvidia"}' > "$nvidia_tmp"
+				else
+						echo -e "\033[33mWarning: Failed to fetch NVIDIA models.\033[0m"
+				fi
+		fi
+		
+		# Combine and save to cache
+		cat "$groq_tmp" "$nvidia_tmp" > "$cache_file"
+		rm -f "$groq_tmp" "$nvidia_tmp"
 }
 
 # format and display the model details

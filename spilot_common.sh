@@ -40,6 +40,7 @@ COMMAND_GENERATION_PROMPT="You are a Debian Linux expert. Your task is to provid
 # chat settings
 TEMPERATURE=0.9
 MAX_TOKENS=4096
+STREAM=false
 MODEL_GROQ=openai/gpt-oss-120b
 MODEL_NVIDIA=mistralai/devstral-2-123b-instruct-2512
 CONTEXT=false
