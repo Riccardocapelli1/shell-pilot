@@ -499,6 +499,25 @@ udev            7.8G     0  7.8G   0% /dev
   Info: Execution of potentially dangerous commands has been disabled.
   ```
 
+#### 🚀 Natural Language to Shell Execution (One-liner)
+
+If you want to stay in your current terminal and execute a command quickly without entering interactive mode:
+
+```bash
+$ s-pilot p "cmd: list current directory content"
+
+# s-pilot will translate and ask:
+s-pilot: ls -F
+Would you like to execute it? (Yes/No)
+Yes
+
+# The command runs directly in your shell:
+Executing command: ls -F
+LICENSE  README.md  s-pilot  spilot_common.sh ...
+```
+
+> **Pro Tip**: Add `alias pls='s-pilot p'` to your `.bashrc` or `.zshrc` to run commands even faster: `pls "cmd: check system load"`
+
 ### Session persistence
   - One-shot Command Mode
   ```shell
